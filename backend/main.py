@@ -1,8 +1,6 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-import psycopg2
-from psycopg2 import sql
-from typing import Optional
+from database import get_db_connection
 
 app = FastAPI(title="Simple Backend API")
 
@@ -14,16 +12,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-# Database connection (configure with your PostgreSQL credentials)
-def get_db_connection():
-    return psycopg2.connect(
-        dbname="your_database",
-        user="your_username",
-        password="your_password",
-        host="localhost",
-        port="5432"
-    )
 
 @app.get("/")
 def read_root():
@@ -55,15 +43,15 @@ def get_users():
 
 # Example POST endpoint with raw SQL
 @app.post("/users")
-def create_user(name: str, email: str):
+def create_user(name: str, email: str, password: str):
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
         
         # Raw SQL insert with parameterized query (prevents SQL injection)
         cursor.execute(
-            "INSERT INTO users (name, email) VALUES (%s, %s) RETURNING id",
-            (name, email)
+            "INSERT INTO users (name, email, password) VALUES (%s, %s, %s) RETURNING id",
+            (name, email, password)
         )
         user_id = cursor.fetchone()[0]
         conn.commit()
