@@ -654,10 +654,6 @@ def get_resolved_items():
                 "user_email": row[10]
             })
 
-        print(f"DEBUG: Fetching resolved items, found {len(items)} items")
-        for item in items:
-            print(f"DEBUG: Resolved item - ID: {item['id']}, Title: {item['title']}, is_active: {item['is_active']}")
-
         cursor.close()
         conn.close()
 
@@ -665,7 +661,6 @@ def get_resolved_items():
     except HTTPException:
         raise
     except Exception as e:
-        print(f"DEBUG: Error fetching resolved items: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 # GET /api/items/{item_id}: Get a single item by ID
@@ -1183,18 +1178,12 @@ def resolve_item(item_id: int):
         conn = get_db_connection()
         cursor = conn.cursor()
 
-        print(f"DEBUG: Attempting to resolve item with ID: {item_id}")
-
         # Check if item exists
-        cursor.execute("SELECT id, is_active FROM items WHERE id = %s", (item_id,))
-        item = cursor.fetchone()
-        if not item:
+        cursor.execute("SELECT id FROM items WHERE id = %s", (item_id,))
+        if not cursor.fetchone():
             cursor.close()
             conn.close()
-            print(f"DEBUG: Item with ID {item_id} not found")
             raise HTTPException(status_code=404, detail="Item not found")
-
-        print(f"DEBUG: Item found - ID: {item[0]}, current is_active: {item[1]}")
 
         # Update item status and is_active
         cursor.execute(
@@ -1203,8 +1192,6 @@ def resolve_item(item_id: int):
         )
         conn.commit()
 
-        print(f"DEBUG: Item {item_id} updated - status='FOUND', is_active=FALSE")
-
         cursor.close()
         conn.close()
 
@@ -1212,7 +1199,6 @@ def resolve_item(item_id: int):
     except HTTPException:
         raise
     except Exception as e:
-        print(f"DEBUG: Error resolving item: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":

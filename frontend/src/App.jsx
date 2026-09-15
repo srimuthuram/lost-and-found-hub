@@ -5,11 +5,13 @@ import TopNavbar from './components/TopNavbar'
 import ContactModal from './components/ContactModal'
 import ChatModal from './components/ChatModal'
 import NotificationCenter from './components/NotificationCenter'
+import OnboardingTour from './components/OnboardingTour'
 import './App.css'
 import './components/ContactModal.css'
 import './components/ChatModal.css'
 import './components/NotificationCenter.css'
 import './components/OTPModal.css'
+import './components/OnboardingTour.css'
 
 function App() {
   const [user, setUser] = useState(null)
@@ -24,6 +26,7 @@ function App() {
   const [itemMessages, setItemMessages] = useState({})
   const [showHistory, setShowHistory] = useState(false)
   const [toast, setToast] = useState({ show: false, message: '', itemId: null })
+  const [showOnboarding, setShowOnboarding] = useState(false)
   
   // Form state for new item
   const [newItem, setNewItem] = useState({
@@ -98,10 +101,7 @@ function App() {
   // Fetch resolved items
   const fetchResolvedItems = async () => {
     try {
-      console.log('Fetching resolved items from API...')
       const data = await getResolvedItems()
-      console.log('Resolved items received:', data)
-      console.log('Setting resolvedItems state with:', data)
       setResolvedItems(data)
     } catch (error) {
       console.error('Error fetching resolved items:', error)
@@ -129,7 +129,33 @@ function App() {
 
   const handleAuthSuccess = (userData) => {
     setUser(userData)
+    // Only show auth tour for truly new users (first-time login after registration)
+    const hasSeenAuthTour = localStorage.getItem('onboarding_tour_completed_auth')
+    if (!hasSeenAuthTour) {
+      // Check if this is a fresh registration (user just registered in this session)
+      const isFreshRegistration = sessionStorage.getItem('fresh_registration')
+      if (isFreshRegistration === 'true') {
+        setShowOnboarding(true)
+        sessionStorage.removeItem('fresh_registration')
+      } else {
+        // Existing user logging in - mark tour as complete
+        localStorage.setItem('onboarding_tour_completed_auth', 'true')
+        setShowOnboarding(false)
+      }
+    }
   }
+
+  const handleOnboardingComplete = () => {
+    setShowOnboarding(false)
+  }
+
+  // Check if onboarding should show for unauthenticated users
+  useEffect(() => {
+    if (!user) {
+      const hasSeenUnauthTour = localStorage.getItem('onboarding_tour_completed_unauth')
+      setShowOnboarding(!hasSeenUnauthTour)
+    }
+  }, [user])
 
   const handleLogout = () => {
     setUser(null)
@@ -244,9 +270,7 @@ function App() {
 
   const handleUpdateStatus = async (itemId) => {
     try {
-      console.log('Resolving item with ID:', itemId)
-      const result = await resolveItem(itemId)
-      console.log('Resolve API result:', result)
+      await resolveItem(itemId)
       // Show toast with undo option
       setToast({
         show: true,
@@ -260,8 +284,7 @@ function App() {
       // Remove from active items
       setItems(items.filter(item => item.id !== itemId))
       // Refresh resolved items
-      console.log('Fetching resolved items after resolve...')
-      await fetchResolvedItems()
+      fetchResolvedItems()
     } catch (error) {
       console.error('Error updating item status:', error)
       alert('Failed to update item status. Please try again.')
@@ -311,6 +334,13 @@ function App() {
   if (!user) {
     return (
       <>
+        {/* Onboarding Tour for unauthenticated users */}
+        {showOnboarding && (
+          <OnboardingTour
+            onComplete={handleOnboardingComplete}
+            isAuthenticated={false}
+          />
+        )}
         <TopNavbar />
         <AuthManager onAuthSuccess={handleAuthSuccess} />
       </>
@@ -535,6 +565,14 @@ function App() {
         currentUser={user}
       />
 
+      {/* Onboarding Tour for authenticated users */}
+      {showOnboarding && (
+        <OnboardingTour
+          onComplete={handleOnboardingComplete}
+          isAuthenticated={true}
+        />
+      )}
+
       {/* Create Item Modal */}
       {showForm && (
         <div className="modal-overlay" onClick={() => setShowForm(false)}>
@@ -585,7 +623,7 @@ function App() {
                   autoComplete="off"
                 />
               </div>
-              
+
               {newItem.type === 'found' && (
                 <>
                   <div className="form-group">
@@ -614,14 +652,14 @@ function App() {
                   </div>
                 </>
               )}
-              
+
               <div className="form-group">
                 <label>Item Photo</label>
                 <div className="file-upload-container" onClick={() => document.getElementById('item-file-input').click()}>
                   {newItem.image_file ? (
-                    <img 
-                      src={URL.createObjectURL(newItem.image_file)} 
-                      alt="Preview" 
+                    <img
+                      src={URL.createObjectURL(newItem.image_file)}
+                      alt="Preview"
                       className="preview-image"
                     />
                   ) : (
@@ -652,6 +690,8 @@ function App() {
           </div>
         </div>
       )}
+
+
     </div>
   )
 }

@@ -172,8 +172,10 @@ function MultiStepRegistration({ onAuthSuccess, onBack }) {
         dp_url: response.user.dp_url,
         is_verified: response.user.is_verified
       }
-      
+
       localStorage.setItem('user', JSON.stringify(user))
+      // Mark this as a fresh registration for onboarding tour
+      sessionStorage.setItem('fresh_registration', 'true')
       onAuthSuccess(user)
     } catch (err) {
       const errorMessage = err?.response?.data?.detail || err?.message || err?.toString() || 'Registration failed. Please try again.'
@@ -290,6 +292,9 @@ function MultiStepRegistration({ onAuthSuccess, onBack }) {
                     placeholder="Create password"
                     required
                     autoComplete="new-password"
+                    autoCorrect="off"
+                    autoCapitalize="off"
+                    spellCheck="false"
                   />
                   <button
                     type="button"
@@ -336,6 +341,9 @@ function MultiStepRegistration({ onAuthSuccess, onBack }) {
                     placeholder="Confirm password"
                     required
                     autoComplete="new-password"
+                    autoCorrect="off"
+                    autoCapitalize="off"
+                    spellCheck="false"
                   />
                   <button
                     type="button"
