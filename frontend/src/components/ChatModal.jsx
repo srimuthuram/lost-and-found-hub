@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { getChatHistory, sendChatMessage, markItemMessagesAsRead } from '../services/api';
 
-const ChatModal = ({ isOpen, onClose, itemId, currentUser }) => {
+const ChatModal = ({ isOpen, onClose, itemId, currentUser, otherUser }) => {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [previewImage, setPreviewImage] = useState(null);
   const messagesEndRef = useRef(null);
 
   useEffect(() => {
@@ -87,7 +88,15 @@ const ChatModal = ({ isOpen, onClose, itemId, currentUser }) => {
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal modal-chat" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
-          <h2>Item Chat</h2>
+          <div className="chat-header-info">
+            <h2>Item Chat</h2>
+            {otherUser && otherUser.email && (
+              <div className="chat-contact-email">
+                <span className="email-label">Contact:</span>
+                <span className="email-address">{otherUser.email}</span>
+              </div>
+            )}
+          </div>
           <button className="btn-close" onClick={onClose}>&times;</button>
         </div>
         
@@ -127,9 +136,12 @@ const ChatModal = ({ isOpen, onClose, itemId, currentUser }) => {
                     {msg.proof_image_url && (
                       <div className="message-proof">
                         <strong>Proof:</strong>
-                        <a href={msg.proof_image_url} target="_blank" rel="noopener noreferrer" className="proof-link">
+                        <button
+                          onClick={() => setPreviewImage(msg.proof_image_url)}
+                          className="proof-link"
+                        >
                           View Image
-                        </a>
+                        </button>
                       </div>
                     )}
                     {msg.verification_answer && (
@@ -158,6 +170,18 @@ const ChatModal = ({ isOpen, onClose, itemId, currentUser }) => {
           </form>
         </div>
       </div>
+
+      {/* Image Preview Modal */}
+      {previewImage && (
+        <div className="image-preview-overlay" onClick={() => setPreviewImage(null)}>
+          <div className="image-preview-modal" onClick={(e) => e.stopPropagation()}>
+            <button className="image-preview-close" onClick={() => setPreviewImage(null)}>
+              ×
+            </button>
+            <img src={previewImage} alt="Proof image" className="preview-image-full" />
+          </div>
+        </div>
+      )}
     </div>
   );
 };

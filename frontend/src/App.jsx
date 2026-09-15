@@ -260,6 +260,7 @@ function App() {
     setContactModal({ isOpen: false, item: null })
     fetchItemMessages()
     fetchUnreadCount()
+    fetchItems() // Refresh items to show chat button immediately
   }
 
   const handleCloseChatModal = () => {
@@ -434,10 +435,10 @@ function App() {
                     // Show chat button if there are existing messages
                     <div style={{ position: 'relative', marginBottom: '0.5rem' }}>
                       <button
-                        onClick={() => setChatModal({ isOpen: true, item: item, otherUser: { name: 'Chat Partner', email: '' } })}
+                        onClick={() => setChatModal({ isOpen: true, item: item, otherUser: { name: item.user_name, email: item.user_email } })}
                         className="btn btn-contact"
                       >
-                        💬 {item.user_id === user.id ? 'Chat' : (item.type === 'lost' ? 'Chat with Owner' : 'Chat with Finder')}
+                        💬 Chat
                       </button>
                       {getUnreadCountForItem(item.id) > 0 && (
                         <span className="chat-badge">{getUnreadCountForItem(item.id)}</span>
@@ -550,9 +551,11 @@ function App() {
         } : null}
         currentUser={user}
         itemId={contactModal.item ? contactModal.item.id : null}
-        onMessageSent={() => {
+        onMessageSent={(result) => {
+          // Just refresh items - button will change from Contact Owner to Chat with Owner
           fetchItemMessages()
           fetchUnreadCount()
+          fetchItems() // Refresh items to show chat button immediately
         }}
         secretQuestion={contactModal.item ? contactModal.item.secret_question : null}
       />
@@ -563,6 +566,7 @@ function App() {
         onClose={handleCloseChatModal}
         itemId={chatModal.item ? chatModal.item.id : null}
         currentUser={user}
+        otherUser={chatModal.otherUser}
       />
 
       {/* Onboarding Tour for authenticated users */}

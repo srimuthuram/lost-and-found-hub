@@ -58,7 +58,7 @@ const ContactModal = ({ isOpen, onClose, contactInfo, currentUser, itemId, onMes
       setProofImage(null);
       setProofPreview(null);
       if (onMessageSent) {
-        onMessageSent();
+        onMessageSent({ success: true });
       }
     } catch (error) {
       // Don't block on verification errors - allow chat regardless
@@ -72,7 +72,7 @@ const ContactModal = ({ isOpen, onClose, contactInfo, currentUser, itemId, onMes
         setProofImage(null);
         setProofPreview(null);
         if (onMessageSent) {
-          onMessageSent();
+          onMessageSent({ success: true });
         }
       } else {
         setError(error.message || 'Failed to send email');

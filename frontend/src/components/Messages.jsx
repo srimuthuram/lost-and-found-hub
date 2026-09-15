@@ -6,6 +6,7 @@ function Messages({ user, onClose, onMessageUpdate }) {
   const [messages, setMessages] = useState([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [previewImage, setPreviewImage] = useState(null)
 
   useEffect(() => {
     if (user) {
@@ -101,14 +102,29 @@ function Messages({ user, onClose, onMessageUpdate }) {
               {message.proof_image_url && (
                 <div className="message-proof">
                   <strong>Proof Image:</strong>
-                  <a href={message.proof_image_url} target="_blank" rel="noopener noreferrer" className="proof-link">
+                  <button
+                    onClick={() => setPreviewImage(message.proof_image_url)}
+                    className="proof-link"
+                  >
                     View Proof
-                  </a>
+                  </button>
                 </div>
               )}
               <div className="message-sender-email">{message.sender_email}</div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Image Preview Modal */}
+      {previewImage && (
+        <div className="image-preview-overlay" onClick={() => setPreviewImage(null)}>
+          <div className="image-preview-modal" onClick={(e) => e.stopPropagation()}>
+            <button className="image-preview-close" onClick={() => setPreviewImage(null)}>
+              ×
+            </button>
+            <img src={previewImage} alt="Proof image" className="preview-image-full" />
+          </div>
         </div>
       )}
     </div>
