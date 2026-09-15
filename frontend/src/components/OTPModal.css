@@ -1,0 +1,32 @@
+.otp-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.otp-instructions {
+  font-size: 0.875rem;
+  color: #6b7280;
+  line-height: 1.5;
+  text-align: center;
+  padding: 0.5rem;
+  background: #f3f4f6;
+  border-radius: 6px;
+}
+
+.otp-input {
+  font-size: 1.5rem;
+  letter-spacing: 0.5rem;
+  text-align: center;
+  font-family: monospace;
+  font-weight: 600;
+}
+
+.error-message {
+  color: #dc2626;
+  font-size: 0.875rem;
+  padding: 0.5rem;
+  background: #fee2e2;
+  border-radius: 6px;
+  text-align: center;
+}

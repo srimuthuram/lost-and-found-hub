@@ -1,34 +1,156 @@
 import { useState, useEffect } from 'react'
-import { getItems, createItem, deleteItem, registerUser } from './services/api'
+import { getItems, createItem, deleteItem, resolveItem, getUnreadCount, getMessages, getResolvedItems, reactivateItem } from './services/api'
+import AuthManager from './components/AuthManager'
+import TopNavbar from './components/TopNavbar'
+import ContactModal from './components/ContactModal'
+import ChatModal from './components/ChatModal'
+import NotificationCenter from './components/NotificationCenter'
 import './App.css'
+import './components/ContactModal.css'
+import './components/ChatModal.css'
+import './components/NotificationCenter.css'
+import './components/OTPModal.css'
 
 function App() {
+  const [user, setUser] = useState(null)
   const [items, setItems] = useState([])
+  const [resolvedItems, setResolvedItems] = useState([])
   const [loading, setLoading] = useState(false)
   const [showForm, setShowForm] = useState(false)
-  const [showRegister, setShowRegister] = useState(false)
+  const [contactModal, setContactModal] = useState({ isOpen: false, item: null })
+  const [chatModal, setChatModal] = useState({ isOpen: false, item: null, otherUser: null })
+  const [showNotifications, setShowNotifications] = useState(false)
+  const [unreadCount, setUnreadCount] = useState(0)
+  const [itemMessages, setItemMessages] = useState({})
+  const [showHistory, setShowHistory] = useState(false)
+  const [toast, setToast] = useState({ show: false, message: '', itemId: null })
   
   // Form state for new item
   const [newItem, setNewItem] = useState({
     title: '',
     description: '',
-    category: '',
     type: 'lost',
     location: '',
-    user_id: 1 // Default user ID for demo
-  })
-  
-  // Form state for user registration
-  const [newUser, setNewUser] = useState({
-    name: '',
-    email: '',
-    password: ''
+    user_id: 1,
+    image_file: null,
+    secret_question: '',
+    secret_answer: ''
   })
 
-  // Fetch items on component mount
+  // Check for existing user on mount
   useEffect(() => {
-    fetchItems()
+    const savedUser = localStorage.getItem('user')
+    if (savedUser) {
+      try {
+        const parsedUser = JSON.parse(savedUser)
+        // Validate that the user has required fields
+        if (parsedUser && parsedUser.id && parsedUser.email && parsedUser.is_verified !== undefined) {
+          setUser(parsedUser)
+        } else {
+          // Clear invalid user data
+          localStorage.removeItem('user')
+          setUser(null)
+          setItems([])
+        }
+      } catch (e) {
+        // Clear corrupted user data
+        localStorage.removeItem('user')
+        setUser(null)
+        setItems([])
+      }
+    }
   }, [])
+
+  // Fetch items when user is authenticated
+  useEffect(() => {
+    if (user) {
+      fetchItems()
+      fetchUnreadCount()
+      fetchItemMessages()
+      fetchResolvedItems()
+    }
+  }, [user])
+
+  // Fetch messages for items when user is authenticated
+  const fetchItemMessages = async () => {
+    try {
+      const messages = await getMessages(user.email)
+      // Group messages by item_id
+      const groupedMessages = {}
+      messages.forEach(msg => {
+        if (!groupedMessages[msg.item_id]) {
+          groupedMessages[msg.item_id] = []
+        }
+        groupedMessages[msg.item_id].push(msg)
+      })
+      setItemMessages(groupedMessages)
+    } catch (error) {
+      console.error('Error fetching item messages:', error)
+    }
+  }
+
+  // Get unread count for a specific item
+  const getUnreadCountForItem = (itemId) => {
+    if (!itemMessages[itemId]) return 0
+    return itemMessages[itemId].filter(msg => !msg.is_read).length
+  }
+
+  // Fetch resolved items
+  const fetchResolvedItems = async () => {
+    try {
+      console.log('Fetching resolved items from API...')
+      const data = await getResolvedItems()
+      console.log('Resolved items received:', data)
+      console.log('Setting resolvedItems state with:', data)
+      setResolvedItems(data)
+    } catch (error) {
+      console.error('Error fetching resolved items:', error)
+    }
+  }
+
+  // Periodically check for new messages
+  useEffect(() => {
+    if (user) {
+      const interval = setInterval(() => {
+        fetchUnreadCount()
+      }, 30000) // Check every 30 seconds
+      return () => clearInterval(interval)
+    }
+  }, [user])
+
+  const fetchUnreadCount = async () => {
+    try {
+      const count = await getUnreadCount(user.email)
+      setUnreadCount(count)
+    } catch (error) {
+      console.error('Error fetching unread count:', error)
+    }
+  }
+
+  const handleAuthSuccess = (userData) => {
+    setUser(userData)
+  }
+
+  const handleLogout = () => {
+    setUser(null)
+    setItems([])
+    localStorage.removeItem('user')
+  }
+
+  const handleOpenForm = (type) => {
+    setNewItem(prev => ({
+      ...prev,
+      title: '',
+      description: '',
+      type: type,
+      location: '',
+      user_id: user.id,
+      image_file: null,
+      secret_question: '',
+      secret_answer: ''
+    }))
+    setShowForm(true)
+  }
 
   const fetchItems = async () => {
     setLoading(true)
@@ -42,20 +164,47 @@ function App() {
     }
   }
 
+  const convertToBase64 = (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader()
+      reader.readAsDataURL(file)
+      reader.onload = () => resolve(reader.result)
+      reader.onerror = error => reject(error)
+    })
+  }
+
   const handleCreateItem = async (e) => {
     e.preventDefault()
     try {
-      await createItem(newItem)
+      let image_url = null
+      if (newItem.image_file) {
+        image_url = await convertToBase64(newItem.image_file)
+      }
+
+      const itemData = {
+        title: newItem.title,
+        description: newItem.description,
+        type: newItem.type,
+        location: newItem.location,
+        user_id: user.id,
+        image_url: image_url,
+        secret_question: newItem.secret_question || null,
+        secret_answer: newItem.secret_answer || null
+      }
+
+      await createItem(itemData)
       setNewItem({
         title: '',
         description: '',
-        category: '',
         type: 'lost',
         location: '',
-        user_id: 1
+        user_id: user.id,
+        image_file: null,
+        secret_question: '',
+        secret_answer: ''
       })
       setShowForm(false)
-      fetchItems() // Refresh the list
+      fetchItems()
     } catch (error) {
       console.error('Error creating item:', error)
       alert('Failed to create item. Please try again.')
@@ -66,7 +215,7 @@ function App() {
     if (window.confirm('Are you sure you want to delete this item?')) {
       try {
         await deleteItem(itemId)
-        fetchItems() // Refresh the list
+        fetchItems()
       } catch (error) {
         console.error('Error deleting item:', error)
         alert('Failed to delete item. Please try again.')
@@ -74,38 +223,146 @@ function App() {
     }
   }
 
-  const handleRegister = async (e) => {
-    e.preventDefault()
+  const handleOpenContactModal = (item) => {
+    setContactModal({
+      isOpen: true,
+      item: item
+    })
+  }
+
+  const handleCloseContactModal = () => {
+    setContactModal({ isOpen: false, item: null })
+    fetchItemMessages()
+    fetchUnreadCount()
+  }
+
+  const handleCloseChatModal = () => {
+    setChatModal({ isOpen: false, item: null, otherUser: null })
+    fetchItemMessages()
+    fetchUnreadCount()
+  }
+
+  const handleUpdateStatus = async (itemId) => {
     try {
-      await registerUser(newUser)
-      setNewUser({
-        name: '',
-        email: '',
-        password: ''
+      console.log('Resolving item with ID:', itemId)
+      const result = await resolveItem(itemId)
+      console.log('Resolve API result:', result)
+      // Show toast with undo option
+      setToast({
+        show: true,
+        message: 'Item marked as found',
+        itemId: itemId
       })
-      setShowRegister(false)
-      alert('Registration successful!')
+      // Auto-dismiss toast after 5 seconds
+      setTimeout(() => {
+        setToast({ show: false, message: '', itemId: null })
+      }, 5000)
+      // Remove from active items
+      setItems(items.filter(item => item.id !== itemId))
+      // Refresh resolved items
+      console.log('Fetching resolved items after resolve...')
+      await fetchResolvedItems()
     } catch (error) {
-      console.error('Error registering user:', error)
-      alert('Registration failed. Please try again.')
+      console.error('Error updating item status:', error)
+      alert('Failed to update item status. Please try again.')
     }
+  }
+
+  const handleUndoResolve = async () => {
+    if (toast.itemId) {
+      try {
+        await reactivateItem(toast.itemId)
+        setToast({ show: false, message: '', itemId: null })
+        // Refresh items
+        fetchItems()
+        fetchResolvedItems()
+      } catch (error) {
+        console.error('Error undoing resolve:', error)
+        alert('Failed to undo. Please try again.')
+      }
+    }
+  }
+
+  const handleReactivateItem = async (itemId) => {
+    try {
+      await reactivateItem(itemId)
+      // Refresh both lists
+      fetchItems()
+      fetchResolvedItems()
+    } catch (error) {
+      console.error('Error reactivating item:', error)
+      alert('Failed to reactivate item. Please try again.')
+    }
+  }
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target
+    setNewItem(prev => ({ ...prev, [name]: value }))
+  }
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0]
+    if (file) {
+      setNewItem(prev => ({ ...prev, image_file: file }))
+    }
+  }
+
+  // Show auth gateway if no user
+  if (!user) {
+    return (
+      <>
+        <TopNavbar />
+        <AuthManager onAuthSuccess={handleAuthSuccess} />
+      </>
+    )
   }
 
   return (
     <div className="app">
-      <header className="header">
-        <h1>🔍 Lost and Found Hub</h1>
-        <div className="header-actions">
-          <button onClick={() => setShowRegister(true)} className="btn btn-secondary">
-            Register
-          </button>
-          <button onClick={() => setShowForm(true)} className="btn btn-primary">
-            + Report Item
-          </button>
+      <TopNavbar 
+        user={user} 
+        onLogout={handleLogout}
+        unreadCount={unreadCount}
+        onNotificationsClick={() => setShowNotifications(!showNotifications)}
+      />
+      
+      {showNotifications && (
+        <NotificationCenter 
+          user={user} 
+          onClose={() => setShowNotifications(false)}
+          onViewItem={(item) => {
+            // Scroll to the item or highlight it
+            const itemElement = document.querySelector(`[data-item-id="${item.id}"]`);
+            if (itemElement) {
+              itemElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              itemElement.style.transition = 'box-shadow 0.3s';
+              itemElement.style.boxShadow = '0 0 0 3px #667eea';
+              setTimeout(() => {
+                itemElement.style.boxShadow = '';
+              }, 2000);
+            }
+          }}
+        />
+      )}
+
+      {toast.show && (
+        <div className="toast-notification">
+          <span>{toast.message}</span>
+          <button onClick={handleUndoResolve} className="toast-undo">Undo</button>
+          <button onClick={() => setToast({ show: false, message: '', itemId: null })} className="toast-close">×</button>
         </div>
-      </header>
+      )}
 
       <main className="main-content">
+        <div className="action-buttons">
+          <button onClick={() => handleOpenForm('lost')} className="btn btn-lost">
+            + Report Lost Item
+          </button>
+          <button onClick={() => handleOpenForm('found')} className="btn btn-found">
+            + Report Found Item
+          </button>
+        </div>
+
         {loading ? (
           <div className="loading">Loading items...</div>
         ) : items.length === 0 ? (
@@ -116,25 +373,77 @@ function App() {
         ) : (
           <div className="items-grid">
             {items.map(item => (
-              <div key={item.id} className={`item-card ${item.type}`}>
+              <div key={item.id} className={`item-card ${item.type} ${item.status}`} data-item-id={item.id}>
                 <div className="item-header">
                   <span className={`badge ${item.type}`}>{item.type.toUpperCase()}</span>
-                  <button 
-                    onClick={() => handleDeleteItem(item.id)}
-                    className="btn-delete"
-                    title="Delete item"
-                  >
-                    ×
-                  </button>
+                  {item.status === 'resolved' && (
+                    <span className="badge resolved">RESOLVED</span>
+                  )}
+                  {item.secret_question && (
+                    <span className="badge security">🔒 SECURE</span>
+                  )}
                 </div>
+                
+                {item.image_url && (
+                  <div className="item-image">
+                    <img src={item.image_url} alt={item.title} />
+                  </div>
+                )}
+                
                 <h3 className="item-title">{item.title}</h3>
                 <p className="item-description">{item.description}</p>
                 <div className="item-details">
                   <span className="detail">📍 {item.location}</span>
-                  <span className="detail">🏷️ {item.category}</span>
                 </div>
                 <div className="item-footer">
                   <small>Reported by: {item.user_name}</small>
+                </div>
+                
+                <div className="item-actions">
+                  {itemMessages[item.id] && itemMessages[item.id].length > 0 ? (
+                    // Show chat button if there are existing messages
+                    <div style={{ position: 'relative', marginBottom: '0.5rem' }}>
+                      <button
+                        onClick={() => setChatModal({ isOpen: true, item: item, otherUser: { name: 'Chat Partner', email: '' } })}
+                        className="btn btn-contact"
+                      >
+                        💬 {item.user_id === user.id ? 'Chat' : (item.type === 'lost' ? 'Chat with Owner' : 'Chat with Finder')}
+                      </button>
+                      {getUnreadCountForItem(item.id) > 0 && (
+                        <span className="chat-badge">{getUnreadCountForItem(item.id)}</span>
+                      )}
+                    </div>
+                  ) : (
+                    // No messages yet - only show contact button for non-owners
+                    item.user_id !== user.id && (
+                      <button
+                        onClick={() => handleOpenContactModal(item)}
+                        className="btn btn-resolve"
+                        style={{ marginBottom: '0.5rem' }}
+                      >
+                        {item.type === 'lost' ? 'Contact Owner' : 'Contact Finder'}
+                      </button>
+                    )
+                  )}
+                  
+                  {item.user_id === user.id ? (
+                    <>
+                      {item.status !== 'FOUND' && (
+                        <button
+                          onClick={() => handleUpdateStatus(item.id)}
+                          className="btn btn-resolve"
+                        >
+                          {item.type === 'lost' ? 'Mark as Found' : 'Mark as Returned'}
+                        </button>
+                      )}
+                      <button
+                        onClick={() => handleDeleteItem(item.id)}
+                        className="btn btn-delete"
+                      >
+                        Delete
+                      </button>
+                    </>
+                  ) : null}
                 </div>
               </div>
             ))}
@@ -142,12 +451,96 @@ function App() {
         )}
       </main>
 
+      {/* Resolved History Section */}
+      <section className="history-section">
+        <div className="history-header">
+          <h2>Resolved Items History</h2>
+          <button 
+            onClick={() => setShowHistory(!showHistory)} 
+            className="btn btn-secondary"
+          >
+            {showHistory ? 'Hide' : 'Show'} ({resolvedItems.length})
+          </button>
+        </div>
+        {showHistory && (
+          <>
+            {resolvedItems.length === 0 ? (
+              <div className="history-empty">
+                <p>No resolved items yet</p>
+                <small>Items you mark as found/returned will appear here</small>
+              </div>
+            ) : (
+              <div className="items-grid history-grid">
+                {resolvedItems.map(item => (
+                  <div key={item.id} className={`item-card ${item.type} resolved-card`} data-item-id={item.id}>
+                    <div className="item-header">
+                      <span className={`badge ${item.type}`}>{item.type.toUpperCase()}</span>
+                      <span className="badge resolved">RESOLVED</span>
+                    </div>
+                    
+                    {item.image_url && (
+                      <div className="item-image">
+                        <img src={item.image_url} alt={item.title} />
+                      </div>
+                    )}
+                    
+                    <h3 className="item-title">{item.title}</h3>
+                    <p className="item-description">{item.description}</p>
+                    <div className="item-details">
+                      <span className="detail">📍 {item.location}</span>
+                    </div>
+                    <div className="item-footer">
+                      <small>Reported by: {item.user_name}</small>
+                    </div>
+                    
+                    <div className="item-actions">
+                      <button
+                        onClick={() => handleReactivateItem(item.id)}
+                        className="btn btn-reactivate"
+                      >
+                        Reactivate
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </>
+        )}
+      </section>
+
+      {/* Contact Modal */}
+      <ContactModal
+        isOpen={contactModal.isOpen}
+        onClose={handleCloseContactModal}
+        contactInfo={contactModal.item ? {
+          name: contactModal.item.user_name,
+          email: contactModal.item.user_email,
+          type: contactModal.item.type
+        } : null}
+        currentUser={user}
+        itemId={contactModal.item ? contactModal.item.id : null}
+        onMessageSent={() => {
+          fetchItemMessages()
+          fetchUnreadCount()
+        }}
+        secretQuestion={contactModal.item ? contactModal.item.secret_question : null}
+      />
+
+      {/* Chat Modal */}
+      <ChatModal
+        isOpen={chatModal.isOpen}
+        onClose={handleCloseChatModal}
+        itemId={chatModal.item ? chatModal.item.id : null}
+        currentUser={user}
+      />
+
       {/* Create Item Modal */}
       {showForm && (
         <div className="modal-overlay" onClick={() => setShowForm(false)}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h2>Report New Item</h2>
+              <h2>Report {newItem.type === 'lost' ? 'Lost' : 'Found'} Item</h2>
               <button onClick={() => setShowForm(false)} className="btn-close">×</button>
             </div>
             <form onSubmit={handleCreateItem} className="modal-form">
@@ -155,51 +548,97 @@ function App() {
                 <label>Title *</label>
                 <input
                   type="text"
+                  name="title"
                   required
                   value={newItem.title}
-                  onChange={(e) => setNewItem({...newItem, title: e.target.value})}
+                  onChange={handleInputChange}
                   placeholder="e.g., Blue Backpack"
+                  autoComplete="off"
                 />
               </div>
               <div className="form-group">
                 <label>Description *</label>
                 <textarea
+                  name="description"
                   required
                   value={newItem.description}
-                  onChange={(e) => setNewItem({...newItem, description: e.target.value})}
+                  onChange={handleInputChange}
                   placeholder="Describe the item in detail..."
-                  rows="3"
+                  rows="2"
+                  autoComplete="off"
                 />
               </div>
-              <div className="form-group">
-                <label>Category *</label>
-                <input
-                  type="text"
-                  required
-                  value={newItem.category}
-                  onChange={(e) => setNewItem({...newItem, category: e.target.value})}
-                  placeholder="e.g., Electronics, Clothing, Keys"
-                />
-              </div>
-              <div className="form-group">
-                <label>Type *</label>
-                <select
-                  value={newItem.type}
-                  onChange={(e) => setNewItem({...newItem, type: e.target.value})}
-                >
-                  <option value="lost">Lost</option>
-                  <option value="found">Found</option>
-                </select>
-              </div>
+              <input
+                type="hidden"
+                name="type"
+                value={newItem.type}
+              />
               <div className="form-group">
                 <label>Location *</label>
                 <input
                   type="text"
+                  name="location"
                   required
                   value={newItem.location}
-                  onChange={(e) => setNewItem({...newItem, location: e.target.value})}
+                  onChange={handleInputChange}
                   placeholder="e.g., Main Building, Room 101"
+                  autoComplete="off"
                 />
+              </div>
+              
+              {newItem.type === 'found' && (
+                <>
+                  <div className="form-group">
+                    <label>Security Question *</label>
+                    <input
+                      type="text"
+                      name="secret_question"
+                      required
+                      value={newItem.secret_question}
+                      onChange={handleInputChange}
+                      placeholder="e.g., What color is the item?"
+                      autoComplete="off"
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Security Answer *</label>
+                    <input
+                      type="text"
+                      name="secret_answer"
+                      required
+                      value={newItem.secret_answer}
+                      onChange={handleInputChange}
+                      placeholder="e.g., Blue"
+                      autoComplete="off"
+                    />
+                  </div>
+                </>
+              )}
+              
+              <div className="form-group">
+                <label>Item Photo</label>
+                <div className="file-upload-container" onClick={() => document.getElementById('item-file-input').click()}>
+                  {newItem.image_file ? (
+                    <img 
+                      src={URL.createObjectURL(newItem.image_file)} 
+                      alt="Preview" 
+                      className="preview-image"
+                    />
+                  ) : (
+                    <div className="file-upload-placeholder">
+                      <span>📷</span>
+                      <span>Upload Item Photo</span>
+                    </div>
+                  )}
+                  <input
+                    id="item-file-input"
+                    type="file"
+                    name="image_file"
+                    onChange={handleFileChange}
+                    accept="image/*"
+                    className="file-input"
+                  />
+                </div>
               </div>
               <div className="form-actions">
                 <button type="button" onClick={() => setShowForm(false)} className="btn btn-secondary">
@@ -207,58 +646,6 @@ function App() {
                 </button>
                 <button type="submit" className="btn btn-primary">
                   Submit Report
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Register Modal */}
-      {showRegister && (
-        <div className="modal-overlay" onClick={() => setShowRegister(false)}>
-          <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h2>Register User</h2>
-              <button onClick={() => setShowRegister(false)} className="btn-close">×</button>
-            </div>
-            <form onSubmit={handleRegister} className="modal-form">
-              <div className="form-group">
-                <label>Name *</label>
-                <input
-                  type="text"
-                  required
-                  value={newUser.name}
-                  onChange={(e) => setNewUser({...newUser, name: e.target.value})}
-                  placeholder="Your full name"
-                />
-              </div>
-              <div className="form-group">
-                <label>Email *</label>
-                <input
-                  type="email"
-                  required
-                  value={newUser.email}
-                  onChange={(e) => setNewUser({...newUser, email: e.target.value})}
-                  placeholder="your.email@example.com"
-                />
-              </div>
-              <div className="form-group">
-                <label>Password *</label>
-                <input
-                  type="password"
-                  required
-                  value={newUser.password}
-                  onChange={(e) => setNewUser({...newUser, password: e.target.value})}
-                  placeholder="Choose a password"
-                />
-              </div>
-              <div className="form-actions">
-                <button type="button" onClick={() => setShowRegister(false)} className="btn btn-secondary">
-                  Cancel
-                </button>
-                <button type="submit" className="btn btn-primary">
-                  Register
                 </button>
               </div>
             </form>

@@ -1,0 +1,151 @@
+.auth-gateway {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 1rem;
+  padding-top: 80px; /* Space for fixed navbar */
+}
+
+.auth-container {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  max-width: 400px;
+  width: 100%;
+  max-height: calc(100vh - 100px);
+  overflow: hidden;
+}
+
+.auth-form-container {
+  padding: 1rem;
+}
+
+.auth-title {
+  text-align: center;
+  color: #1f2937;
+  margin: 0 0 1rem 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.error-message {
+  background: #fee2e2;
+  color: #dc2626;
+  padding: 0.5rem;
+  border-radius: 6px;
+  margin-bottom: 0.75rem;
+  font-size: 0.75rem;
+  text-align: center;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+/* Circular DP Upload */
+.dp-upload-container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1rem;
+  position: relative;
+  cursor: pointer;
+}
+
+.dp-preview {
+  width: 85px;
+  height: 85px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #667eea;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.dp-placeholder {
+  width: 85px;
+  height: 85px;
+  border-radius: 50%;
+  border: 3px dashed #d1d5db;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: #f9fafb;
+  transition: all 0.2s;
+}
+
+.dp-placeholder:hover {
+  border-color: #667eea;
+  background: #f3f4f6;
+}
+
+.camera-icon {
+  font-size: 1.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.dp-text {
+  font-size: 0.625rem;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.dp-input {
+  display: none;
+}
+
+/* Form Fields */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.form-group label {
+  font-weight: 500;
+  color: #374151;
+  font-size: 0.75rem;
+}
+
+.form-group input {
+  padding: 0.5rem;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  transition: border-color 0.2s;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.1);
+}
+
+/* Button */
+.btn {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.2s;
+  margin-top: 0.25rem;
+}
+
+.btn-primary {
+  background: #667eea;
+  color: white;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: #5568d3;
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

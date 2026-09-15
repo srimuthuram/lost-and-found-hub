@@ -1,0 +1,105 @@
+.multi-step-registration {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 1rem;
+}
+
+.btn-back {
+  background: transparent;
+  border: none;
+  color: #667eea;
+  font-size: 0.875rem;
+  cursor: pointer;
+  padding: 0.5rem 0;
+  margin-bottom: 1rem;
+  transition: color 0.2s;
+}
+
+.btn-back:hover {
+  color: #5568d3;
+}
+
+input:disabled {
+  background-color: #f3f4f6;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.otp-input {
+  font-size: 1.5rem;
+  letter-spacing: 0.5rem;
+  text-align: center;
+  font-family: monospace;
+  font-weight: 600;
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.otp-input:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.password-requirements {
+  margin-top: 0.25rem;
+  padding: 0.5rem;
+  background: #f3f4f6;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  color: #6b7280;
+  text-align: center;
+}
+
+.password-error {
+  color: #dc2626;
+  font-weight: 500;
+}
+
+.password-success {
+  color: #16a34a;
+  font-weight: 500;
+}
+
+.password-input-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.password-input-container input {
+  padding-right: 3rem;
+}
+
+.password-toggle {
+  position: absolute;
+  right: 0.75rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 4px;
+  transition: background 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.password-toggle:hover {
+  background: transparent;
+}
+
+.password-toggle svg {
+  color: #6b7280;
+  transition: color 0.2s;
+}
+
+.password-toggle:hover svg {
+  color: #374151;
+}

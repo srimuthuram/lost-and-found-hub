@@ -1,0 +1,137 @@
+.notification-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+  padding: 1rem;
+  z-index: 2000;
+}
+
+.notification-panel {
+  background: white;
+  border-radius: 12px;
+  max-width: 400px;
+  width: 100%;
+  max-height: 80vh;
+  overflow: hidden;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  margin-top: 60px;
+}
+
+.notification-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  border-bottom: 1px solid #e5e7eb;
+  background: #f9fafb;
+}
+
+.notification-header h2 {
+  margin: 0;
+  font-size: 1.125rem;
+  color: #1f2937;
+}
+
+.close-button {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #6b7280;
+  padding: 0;
+  line-height: 1;
+  transition: color 0.2s;
+}
+
+.close-button:hover {
+  color: #374151;
+}
+
+.notification-body {
+  max-height: calc(80vh - 60px);
+  overflow-y: auto;
+}
+
+.notification-loading,
+.notification-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1rem;
+  color: #6b7280;
+  text-align: center;
+}
+
+.notification-empty p {
+  margin: 0 0 0.5rem 0;
+  font-size: 0.875rem;
+}
+
+.notification-empty small {
+  font-size: 0.75rem;
+}
+
+.notification-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.notification-item {
+  padding: 1rem;
+  border-bottom: 1px solid #e5e7eb;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.notification-item:hover {
+  background-color: #f9fafb;
+}
+
+.notification-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.notification-type {
+  font-weight: 600;
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+}
+
+.notification-type.lost {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.notification-type.found {
+  background: #d1fae5;
+  color: #059669;
+}
+
+.notification-item-title {
+  font-weight: 600;
+  color: #1f2937;
+  font-size: 0.875rem;
+  margin-bottom: 0.25rem;
+}
+
+.notification-item-reporter {
+  color: #6b7280;
+  font-size: 0.875rem;
+  margin-bottom: 0.25rem;
+}
+
+.notification-item-location {
+  color: #374151;
+  font-size: 0.75rem;
+}
