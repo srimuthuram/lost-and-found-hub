@@ -587,7 +587,7 @@ def get_items():
 
         # Join items with users and order by id DESC, only active items
         cursor.execute("""
-            SELECT i.id, i.title, i.description, i.type, i.location, i.user_id, i.image_url, i.status, i.is_active, i.secret_question,
+            SELECT i.id, i.title, i.description, i.type, i.location, i.user_id, i.image_url, i.status, i.is_active, i.secret_question, i.secret_answer,
                    u.name as user_name, u.email as user_email
             FROM items i
             JOIN users u ON i.user_id = u.id
@@ -612,8 +612,9 @@ def get_items():
                 "status": item[7],
                 "is_active": item[8],
                 "secret_question": item[9],
-                "user_name": item[10],
-                "user_email": item[11]
+                "secret_answer": item[10],
+                "user_name": item[11],
+                "user_email": item[12]
             }
             for item in items
         ]
@@ -631,6 +632,7 @@ def get_resolved_items():
         cursor.execute("""
             SELECT i.id, i.title, i.description, i.type, i.location,
                    i.user_id, i.image_url, i.status, i.is_active,
+                   i.secret_question, i.secret_answer,
                    u.name AS user_name, u.email AS user_email
             FROM items i
             JOIN users u ON i.user_id = u.id
@@ -650,8 +652,10 @@ def get_resolved_items():
                 "image_url": row[6],
                 "status": row[7],
                 "is_active": row[8],
-                "user_name": row[9],
-                "user_email": row[10]
+                "secret_question": row[9],
+                "secret_answer": row[10],
+                "user_name": row[11],
+                "user_email": row[12]
             })
 
         cursor.close()
@@ -672,7 +676,7 @@ def get_item(item_id: int):
 
         # Get single item with user information
         cursor.execute("""
-            SELECT i.id, i.title, i.description, i.type, i.location, i.user_id, i.image_url, i.status, i.is_active, i.secret_question,
+            SELECT i.id, i.title, i.description, i.type, i.location, i.user_id, i.image_url, i.status, i.is_active, i.secret_question, i.secret_answer,
                    u.name as user_name, u.email as user_email
             FROM items i
             JOIN users u ON i.user_id = u.id
@@ -697,8 +701,9 @@ def get_item(item_id: int):
             "status": item[7],
             "is_active": item[8],
             "secret_question": item[9],
-            "user_name": item[10],
-            "user_email": item[11]
+            "secret_answer": item[10],
+            "user_name": item[11],
+            "user_email": item[12]
         }
     except HTTPException:
         raise
@@ -881,25 +886,27 @@ def get_messages(user_email: str = Query(..., description="User email to get mes
         if item_id:
             cursor.execute("""
                 SELECT m.id, m.item_id, m.message, m.is_read, m.read_at, m.created_at, m.proof_image_url, m.verification_answer,
+                       m.sender_id, m.receiver_id,
                        u.name as sender_name, u.email as sender_email,
                        i.title as item_title, i.type as item_type
                 FROM messages m
                 JOIN users u ON m.sender_id = u.id
                 JOIN items i ON m.item_id = i.id
-                WHERE m.receiver_id = %s AND m.item_id = %s
+                WHERE (m.receiver_id = %s OR m.sender_id = %s) AND m.item_id = %s
                 ORDER BY m.created_at DESC
-            """, (user_id, item_id))
+            """, (user_id, user_id, item_id))
         else:
             cursor.execute("""
                 SELECT m.id, m.item_id, m.message, m.is_read, m.read_at, m.created_at, m.proof_image_url, m.verification_answer,
+                       m.sender_id, m.receiver_id,
                        u.name as sender_name, u.email as sender_email,
                        i.title as item_title, i.type as item_type
                 FROM messages m
                 JOIN users u ON m.sender_id = u.id
                 JOIN items i ON m.item_id = i.id
-                WHERE m.receiver_id = %s
+                WHERE m.receiver_id = %s OR m.sender_id = %s
                 ORDER BY m.created_at DESC
-            """, (user_id,))
+            """, (user_id, user_id))
         
         messages = []
         for row in cursor.fetchall():
@@ -912,10 +919,12 @@ def get_messages(user_email: str = Query(..., description="User email to get mes
                 "created_at": row[5].isoformat(),
                 "proof_image_url": row[6],
                 "verification_answer": row[7],
-                "sender_name": row[8],
-                "sender_email": row[9],
-                "item_title": row[10],
-                "item_type": row[11]
+                "sender_id": row[8],
+                "receiver_id": row[9],
+                "sender_name": row[10],
+                "sender_email": row[11],
+                "item_title": row[12],
+                "item_type": row[13]
             })
         
         cursor.close()
@@ -944,6 +953,43 @@ def mark_message_as_read(message_id: int):
         conn.close()
         
         return {"message": "Message marked as read"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# PATCH /api/messages/mark-all-read: Mark all messages for a user as read
+@app.patch("/api/messages/mark-all-read")
+def mark_all_messages_as_read(user_email: str = Query(..., description="User email")):
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        # Get user ID
+        cursor.execute(
+            "SELECT id FROM users WHERE email = %s",
+            (user_email,)
+        )
+        user_result = cursor.fetchone()
+        if not user_result:
+            cursor.close()
+            conn.close()
+            raise HTTPException(status_code=404, detail="User not found")
+        user_id = user_result[0]
+        
+        # Mark all unread messages where user is the receiver as read
+        cursor.execute(
+            """UPDATE messages 
+               SET is_read = TRUE, read_at = CURRENT_TIMESTAMP 
+               WHERE receiver_id = %s AND is_read = FALSE""",
+            (user_id,)
+        )
+        conn.commit()
+        
+        cursor.close()
+        conn.close()
+        
+        return {"message": "All messages marked as read"}
     except HTTPException:
         raise
     except Exception as e:

@@ -128,6 +128,18 @@ const ContactModal = ({ isOpen, onClose, contactInfo, currentUser, itemId, onMes
           </div>
           
           <form onSubmit={handleSendEmail}>
+            <div className="form-group">
+              <label>Your Message *</label>
+              <textarea
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                placeholder="Write your message here..."
+                required
+                rows="4"
+                autoComplete="off"
+              />
+            </div>
+
             {secretQuestion && (
               <div className="form-group">
                 <label>Security Question *</label>
@@ -142,18 +154,6 @@ const ContactModal = ({ isOpen, onClose, contactInfo, currentUser, itemId, onMes
                 />
               </div>
             )}
-            
-            <div className="form-group">
-              <label>Your Message *</label>
-              <textarea
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                placeholder="Write your message here..."
-                required
-                rows="4"
-                autoComplete="off"
-              />
-            </div>
             
             <div className="form-group">
               <label>Proof of Ownership (Optional)</label>

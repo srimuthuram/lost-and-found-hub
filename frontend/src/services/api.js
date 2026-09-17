@@ -113,6 +113,23 @@ export const getItems = async () => {
   }
 };
 
+// Get single item by ID
+export const getItem = async (itemId) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/items/${itemId}`);
+    
+    if (!response.ok) {
+      throw new Error('Failed to fetch item');
+    }
+    
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error fetching item:', error);
+    throw error;
+  }
+};
+
 // Create a new item
 export const createItem = async (itemData) => {
   try {
@@ -271,6 +288,25 @@ export const markItemMessagesAsRead = async (itemId, userEmail) => {
     return await response.json();
   } catch (error) {
     console.error('Error marking item messages as read:', error);
+    throw error;
+  }
+};
+
+// Mark all messages for a user as read
+export const markMessagesAsRead = async (userEmail) => {
+  try {
+    const url = `${API_BASE_URL}/messages/mark-all-read?user_email=${encodeURIComponent(userEmail)}`;
+    const response = await fetch(url, {
+      method: 'PATCH',
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to mark all messages as read');
+    }
+    
+    return await response.json();
+  } catch (error) {
+    console.error('Error marking all messages as read:', error);
     throw error;
   }
 };

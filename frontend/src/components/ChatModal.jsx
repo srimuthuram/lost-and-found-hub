@@ -1,20 +1,52 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { getChatHistory, sendChatMessage, markItemMessagesAsRead } from '../services/api';
+import { getChatHistory, sendChatMessage, markItemMessagesAsRead, getItem } from '../services/api';
 
-const ChatModal = ({ isOpen, onClose, itemId, currentUser, otherUser }) => {
+const ChatModal = ({ isOpen, onClose, itemId, currentUser, otherUser, item }) => {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [previewImage, setPreviewImage] = useState(null);
+  const [itemSecretAnswer, setItemSecretAnswer] = useState(otherUser?.secretAnswer || null);
+  const [contactEmail, setContactEmail] = useState(otherUser?.email || null);
+  const [contactName, setContactName] = useState(otherUser?.name || null);
   const messagesEndRef = useRef(null);
+
+  // Check if current user is the finder (owner of a found item)
+  const isFinder = item && item.type === 'found' && item.user_id === currentUser.id;
+
+  // Initialize contact info from otherUser prop when modal opens
+  useEffect(() => {
+    if (isOpen && otherUser) {
+      setContactEmail(otherUser.email);
+      setContactName(otherUser.name);
+    }
+  }, [isOpen, otherUser]);
 
   useEffect(() => {
     if (isOpen && itemId && currentUser) {
       loadChatHistory();
       markMessagesAsRead();
+      // Fetch item details to get the secret answer
+      fetchItemSecretAnswer();
     }
   }, [isOpen, itemId, currentUser]);
+
+  // Determine contact info from messages or otherUser prop
+  useEffect(() => {
+    if (messages.length > 0 && currentUser) {
+      // Find a message from the other person
+      const otherPersonMessage = messages.find(msg => msg.sender_id !== currentUser.id);
+      if (otherPersonMessage) {
+        setContactEmail(otherPersonMessage.sender_email);
+        setContactName(otherPersonMessage.sender_name);
+      }
+    } else if (otherUser) {
+      // Use otherUser prop if no messages yet
+      setContactEmail(otherUser.email);
+      setContactName(otherUser.name);
+    }
+  }, [messages, currentUser, otherUser]);
 
   useEffect(() => {
     scrollToBottom();
@@ -25,6 +57,17 @@ const ChatModal = ({ isOpen, onClose, itemId, currentUser, otherUser }) => {
       await markItemMessagesAsRead(itemId, currentUser.email);
     } catch (err) {
       console.error('Error marking messages as read:', err);
+    }
+  };
+
+  const fetchItemSecretAnswer = async () => {
+    try {
+      const itemData = await getItem(itemId);
+      if (itemData && itemData.secret_answer) {
+        setItemSecretAnswer(itemData.secret_answer);
+      }
+    } catch (err) {
+      console.error('Error fetching item secret answer:', err);
     }
   };
 
@@ -88,12 +131,22 @@ const ChatModal = ({ isOpen, onClose, itemId, currentUser, otherUser }) => {
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal modal-chat" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
-          <div className="chat-header-info">
-            <h2>Item Chat</h2>
-            {otherUser && otherUser.email && (
-              <div className="chat-contact-email">
-                <span className="email-label">Contact:</span>
-                <span className="email-address">{otherUser.email}</span>
+          <div className="chat-participants">
+            {/* Show ONLY the other person's DP, name, and email */}
+            {contactName && (
+              <div className="chat-participant">
+                <div className="participant-dp participant-dp-placeholder">
+                  {contactName.charAt(0).toUpperCase()}
+                </div>
+                <div className="participant-info">
+                  <span className="participant-name">{contactName}</span>
+                  {contactEmail && (
+                    <div className="participant-email">
+                      <span className="email-label">Contact:</span>
+                      <span className="email-address">{contactEmail}</span>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
           </div>
@@ -144,9 +197,16 @@ const ChatModal = ({ isOpen, onClose, itemId, currentUser, otherUser }) => {
                         </button>
                       </div>
                     )}
-                    {msg.verification_answer && (
+                    {msg.verification_answer && isFinder && (
                       <div className="message-verification">
-                        <strong>Verification Answer:</strong> {msg.verification_answer}
+                        <div className="verification-comparison">
+                          <div className="verification-original">
+                            <strong>Original Security Answer:</strong> {itemSecretAnswer || 'Not set'}
+                          </div>
+                          <div className="verification-user">
+                            <strong>Answer given by {msg.sender_name}:</strong> {msg.verification_answer}
+                          </div>
+                        </div>
                       </div>
                     )}
                   </div>

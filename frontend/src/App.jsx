@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { getItems, createItem, deleteItem, resolveItem, getUnreadCount, getMessages, getResolvedItems, reactivateItem } from './services/api'
+import { getItems, createItem, deleteItem, resolveItem, getUnreadCount, getMessages, getResolvedItems, reactivateItem, markMessagesAsRead } from './services/api'
 import AuthManager from './components/AuthManager'
 import TopNavbar from './components/TopNavbar'
 import ContactModal from './components/ContactModal'
@@ -78,6 +78,7 @@ function App() {
   const fetchItemMessages = async () => {
     try {
       const messages = await getMessages(user.email)
+      console.log('Fetched messages:', messages)
       // Group messages by item_id
       const groupedMessages = {}
       messages.forEach(msg => {
@@ -86,16 +87,42 @@ function App() {
         }
         groupedMessages[msg.item_id].push(msg)
       })
+      console.log('Grouped messages:', groupedMessages)
       setItemMessages(groupedMessages)
     } catch (error) {
       console.error('Error fetching item messages:', error)
     }
   }
 
-  // Get unread count for a specific item
+  // Get unread count for a specific item (only count incoming unread messages)
   const getUnreadCountForItem = (itemId) => {
     if (!itemMessages[itemId]) return 0
-    return itemMessages[itemId].filter(msg => !msg.is_read).length
+    return itemMessages[itemId].filter(msg => !msg.is_read && msg.receiver_id === user.id).length
+  }
+
+  // Check if owner has received messages for this item
+  const hasOwnerReceivedMessages = (itemId) => {
+    if (!itemMessages[itemId]) return false
+    return itemMessages[itemId].some(msg => msg.receiver_id === user.id)
+  }
+
+  // Check if current user has sent a message for this item
+  const hasUserSentMessage = (itemId) => {
+    if (!itemMessages[itemId]) return false
+    return itemMessages[itemId].some(msg => msg.sender_id === user.id)
+  }
+
+  // Handle notification bell click - mark messages as read
+  const handleNotificationsClick = async () => {
+    try {
+      // Mark all messages as read
+      await markMessagesAsRead(user.email)
+      setUnreadCount(0)
+      setShowNotifications(!showNotifications)
+    } catch (error) {
+      console.error('Error marking messages as read:', error)
+      setShowNotifications(!showNotifications)
+    }
   }
 
   // Fetch resolved items
@@ -354,7 +381,7 @@ function App() {
         user={user} 
         onLogout={handleLogout}
         unreadCount={unreadCount}
-        onNotificationsClick={() => setShowNotifications(!showNotifications)}
+        onNotificationsClick={handleNotificationsClick}
       />
       
       {showNotifications && (
@@ -414,13 +441,13 @@ function App() {
                     <span className="badge security">🔒 SECURE</span>
                   )}
                 </div>
-                
+
                 {item.image_url && (
                   <div className="item-image">
                     <img src={item.image_url} alt={item.title} />
                   </div>
                 )}
-                
+
                 <h3 className="item-title">{item.title}</h3>
                 <p className="item-description">{item.description}</p>
                 <div className="item-details">
@@ -429,24 +456,47 @@ function App() {
                 <div className="item-footer">
                   <small>Reported by: {item.user_name}</small>
                 </div>
-                
+
                 <div className="item-actions">
-                  {itemMessages[item.id] && itemMessages[item.id].length > 0 ? (
-                    // Show chat button if there are existing messages
-                    <div style={{ position: 'relative', marginBottom: '0.5rem' }}>
-                      <button
-                        onClick={() => setChatModal({ isOpen: true, item: item, otherUser: { name: item.user_name, email: item.user_email } })}
-                        className="btn btn-contact"
-                      >
-                        💬 Chat
-                      </button>
-                      {getUnreadCountForItem(item.id) > 0 && (
-                        <span className="chat-badge">{getUnreadCountForItem(item.id)}</span>
-                      )}
-                    </div>
+                  {/* Owner: Show Chat button only if they received messages */}
+                  {item.user_id === user.id ? (
+                    hasOwnerReceivedMessages(item.id) && (
+                      <div style={{ position: 'relative', marginBottom: '0.5rem' }}>
+                        <button
+                          onClick={() => {
+                            // Get the sender's info from messages
+                            const senderMessage = itemMessages[item.id]?.find(msg => msg.sender_id !== user.id);
+                            const otherUser = senderMessage ? {
+                              name: senderMessage.sender_name,
+                              email: senderMessage.sender_email,
+                              secretAnswer: item.secret_answer
+                            } : { name: item.user_name, email: item.user_email, secretAnswer: item.secret_answer };
+                            setChatModal({ isOpen: true, item: item, otherUser });
+                          }}
+                          className="btn btn-contact"
+                        >
+                          💬 Chat
+                        </button>
+                        {getUnreadCountForItem(item.id) > 0 && (
+                          <span className="chat-badge">{getUnreadCountForItem(item.id)}</span>
+                        )}
+                      </div>
+                    )
                   ) : (
-                    // No messages yet - only show contact button for non-owners
-                    item.user_id !== user.id && (
+                    /* Non-owner: Show Contact button if they haven't sent message, Chat button if they have */
+                    hasUserSentMessage(item.id) ? (
+                      <div style={{ position: 'relative', marginBottom: '0.5rem' }}>
+                        <button
+                          onClick={() => setChatModal({ isOpen: true, item: item, otherUser: { name: item.user_name, email: item.user_email, secretAnswer: item.secret_answer } })}
+                          className="btn btn-contact"
+                        >
+                          💬 Chat with {item.type === 'lost' ? 'Owner' : 'Finder'}
+                        </button>
+                        {getUnreadCountForItem(item.id) > 0 && (
+                          <span className="chat-badge">{getUnreadCountForItem(item.id)}</span>
+                        )}
+                      </div>
+                    ) : (
                       <button
                         onClick={() => handleOpenContactModal(item)}
                         className="btn btn-resolve"
@@ -508,13 +558,13 @@ function App() {
                       <span className={`badge ${item.type}`}>{item.type.toUpperCase()}</span>
                       <span className="badge resolved">RESOLVED</span>
                     </div>
-                    
+
                     {item.image_url && (
                       <div className="item-image">
                         <img src={item.image_url} alt={item.title} />
                       </div>
                     )}
-                    
+
                     <h3 className="item-title">{item.title}</h3>
                     <p className="item-description">{item.description}</p>
                     <div className="item-details">
@@ -523,7 +573,7 @@ function App() {
                     <div className="item-footer">
                       <small>Reported by: {item.user_name}</small>
                     </div>
-                    
+
                     <div className="item-actions">
                       <button
                         onClick={() => handleReactivateItem(item.id)}
@@ -552,10 +602,12 @@ function App() {
         currentUser={user}
         itemId={contactModal.item ? contactModal.item.id : null}
         onMessageSent={(result) => {
+          console.log('Message sent, refreshing items...')
           // Just refresh items - button will change from Contact Owner to Chat with Owner
           fetchItemMessages()
           fetchUnreadCount()
           fetchItems() // Refresh items to show chat button immediately
+          console.log('Items refreshed')
         }}
         secretQuestion={contactModal.item ? contactModal.item.secret_question : null}
       />
@@ -567,6 +619,7 @@ function App() {
         itemId={chatModal.item ? chatModal.item.id : null}
         currentUser={user}
         otherUser={chatModal.otherUser}
+        item={chatModal.item}
       />
 
       {/* Onboarding Tour for authenticated users */}

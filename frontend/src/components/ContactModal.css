@@ -96,7 +96,7 @@
 
 .file-upload-container .preview-image {
   max-width: 100%;
-  max-height: 150px;
+  max-height: 100px;
   border-radius: 6px;
   object-fit: cover;
 }

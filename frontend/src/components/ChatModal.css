@@ -5,33 +5,82 @@
   flex-direction: column;
 }
 
-.chat-header-info {
+.chat-participants {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
   flex: 1;
 }
 
-.chat-header-info h2 {
-  margin: 0;
-  font-size: 1.25rem;
-  font-weight: 600;
-}
-
-.chat-contact-email {
-  margin-top: 0.25rem;
-  font-size: 0.875rem;
-  color: #6b7280;
+.chat-participant {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.75rem;
 }
 
-.email-label {
+.participant-dp {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #e5e7eb;
+}
+
+.participant-dp-placeholder {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 600;
+  border: 2px solid #e5e7eb;
+}
+
+.participant-name {
+  font-size: 0.875rem;
   font-weight: 500;
   color: #374151;
 }
 
-.email-address {
+.participant-email-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+.participant-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+.participant-email {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  color: #6b7280;
+  flex-wrap: wrap;
+}
+
+.participant-email .email-label {
+  font-weight: 500;
+  color: #374151;
+}
+
+.participant-email .email-address {
   color: #667eea;
   font-weight: 500;
+  word-break: break-all;
+  flex: 1;
 }
 
 .chat-content {
@@ -93,6 +142,20 @@
 }
 
 .chat-message.sent .message-verification {
+  color: white;
+}
+
+.chat-message.sent .verification-comparison {
+  gap: 0.5rem;
+}
+
+.chat-message.sent .verification-original,
+.chat-message.sent .verification-user {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.chat-message.sent .verification-original strong,
+.chat-message.sent .verification-user strong {
   color: white;
 }
 
@@ -159,6 +222,37 @@
   padding-top: 0.5rem;
   border-top: 1px solid rgba(255, 255, 255, 0.2);
   font-size: 0.75rem;
+}
+
+.verification-comparison {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.verification-original {
+  padding: 0.5rem;
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 4px;
+}
+
+.verification-user {
+  padding: 0.5rem;
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 4px;
+}
+
+.chat-message.received .message-verification {
+  border-top-color: rgba(0, 0, 0, 0.1);
+}
+
+.chat-message.received .verification-comparison {
+  gap: 0.5rem;
+}
+
+.chat-message.received .verification-original,
+.chat-message.received .verification-user {
+  background: rgba(0, 0, 0, 0.05);
 }
 
 .chat-message.received .message-proof,
