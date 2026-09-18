@@ -107,91 +107,89 @@ function AuthGateway({ onAuthSuccess }) {
 
   return (
     <div className="auth-gateway">
+      <h2 className="auth-title">Register</h2>
+      
+      {error && <div className="error-message">{error}</div>}
+
       <div className="auth-container">
-        <div className="auth-form-container">
-          <h2 className="auth-title">Register</h2>
-          
-          {error && <div className="error-message">{error}</div>}
+        <form onSubmit={handleSubmit} className="auth-form">
+          {/* Circular DP Upload */}
+          <div className="dp-upload-container" onClick={handleDpClick}>
+            {dpPreview ? (
+              <img src={dpPreview} alt="Profile" className="dp-preview" />
+            ) : (
+              <div className="dp-placeholder">
+                <span className="camera-icon">📷</span>
+                <span className="dp-text">Add Photo</span>
+              </div>
+            )}
+            <input
+              ref={fileInputRef}
+              type="file"
+              name="dp_file"
+              onChange={handleFileChange}
+              accept="image/*"
+              className="dp-input"
+            />
+          </div>
 
-          <form onSubmit={handleSubmit} className="auth-form">
-            {/* Circular DP Upload */}
-            <div className="dp-upload-container" onClick={handleDpClick}>
-              {dpPreview ? (
-                <img src={dpPreview} alt="Profile" className="dp-preview" />
-              ) : (
-                <div className="dp-placeholder">
-                  <span className="camera-icon">📷</span>
-                  <span className="dp-text">Add Photo</span>
-                </div>
-              )}
-              <input
-                ref={fileInputRef}
-                type="file"
-                name="dp_file"
-                onChange={handleFileChange}
-                accept="image/*"
-                className="dp-input"
-              />
-            </div>
+          {/* Form Fields */}
+          <div className="form-group">
+            <label>Name *</label>
+            <input
+              type="text"
+              name="name"
+              value={formData.name}
+              onChange={handleInputChange}
+              placeholder="Your full name"
+              required
+              autoComplete="off"
+            />
+          </div>
 
-            {/* Form Fields */}
-            <div className="form-group">
-              <label>Name *</label>
-              <input
-                type="text"
-                name="name"
-                value={formData.name}
-                onChange={handleInputChange}
-                placeholder="Your full name"
-                required
-                autoComplete="off"
-              />
-            </div>
+          <div className="form-group">
+            <label>Email *</label>
+            <input
+              type="email"
+              name="email"
+              value={formData.email}
+              onChange={handleInputChange}
+              placeholder="your.email@example.com"
+              required
+              autoComplete="off"
+            />
+          </div>
 
-            <div className="form-group">
-              <label>Email *</label>
-              <input
-                type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleInputChange}
-                placeholder="your.email@example.com"
-                required
-                autoComplete="off"
-              />
-            </div>
+          <div className="form-group">
+            <label>Password *</label>
+            <input
+              type="password"
+              name="password"
+              value={formData.password}
+              onChange={handleInputChange}
+              placeholder="Create password"
+              required
+              autoComplete="new-password"
+            />
+          </div>
 
-            <div className="form-group">
-              <label>Password *</label>
-              <input
-                type="password"
-                name="password"
-                value={formData.password}
-                onChange={handleInputChange}
-                placeholder="Create password"
-                required
-                autoComplete="new-password"
-              />
-            </div>
+          <div className="form-group">
+            <label>Confirm Password *</label>
+            <input
+              type="password"
+              name="confirm_password"
+              value={formData.confirm_password}
+              onChange={handleInputChange}
+              placeholder="Confirm password"
+              required
+              autoComplete="new-password"
+            />
+          </div>
 
-            <div className="form-group">
-              <label>Confirm Password *</label>
-              <input
-                type="password"
-                name="confirm_password"
-                value={formData.confirm_password}
-                onChange={handleInputChange}
-                placeholder="Confirm password"
-                required
-                autoComplete="new-password"
-              />
-            </div>
-
-            <button type="submit" className="btn btn-primary" disabled={loading}>
-              {loading ? 'Registering...' : 'Register'}
-            </button>
-          </form>
-        </div>
+          <button type="submit" className="btn btn-primary" disabled={loading}>
+            {loading ? 'Registering...' : 'Register'}
+          </button>
+        </form>
       </div>
       
       <OTPModal

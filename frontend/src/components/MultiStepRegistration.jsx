@@ -43,6 +43,15 @@ function MultiStepRegistration({ onAuthSuccess, onBack }) {
     return errors
   }
 
+  const getNextMissingRequirement = (password) => {
+    if (password.length < 8) return '8+ characters'
+    if (!/[A-Z]/.test(password)) return 'uppercase letter'
+    if (!/[a-z]/.test(password)) return 'lowercase letter'
+    if (!/\d/.test(password)) return 'number'
+    if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) return 'special character'
+    return null
+  }
+
   const handleDpClick = () => {
     fileInputRef.current.click()
   }
@@ -199,181 +208,175 @@ function MultiStepRegistration({ onAuthSuccess, onBack }) {
 
   return (
     <div className="multi-step-registration">
+      <button onClick={handleBack} className="btn-back">← Back</button>
+      <h2 className="auth-title">
+        {step === 1 ? 'Register - Step 1' : 'Register - Step 2'}
+      </h2>
+      
+      {error && <div className="error-message">{error}</div>}
+
       <div className="auth-container">
-        <div className="auth-form-container">
-          <button onClick={handleBack} className="btn-back">← Back</button>
-          <h2 className="auth-title">
-            {step === 1 ? 'Register - Step 1' : 'Register - Step 2'}
-          </h2>
-          
-          {error && <div className="error-message">{error}</div>}
-
-          {step === 1 ? (
-            <form onSubmit={otpSent ? handleVerifyOTP : handleSendOTP} className="auth-form">
+        {step === 1 ? (
+          <form onSubmit={otpSent ? handleVerifyOTP : handleSendOTP} className="auth-form">
+            <div className="form-group">
+              <label>Email Address *</label>
+              <input
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleInputChange}
+                placeholder="your.email@example.com"
+                required
+                disabled={otpSent}
+                autoComplete="off"
+              />
+            </div>
+            
+            {otpSent && (
               <div className="form-group">
-                <label>Email Address *</label>
-                <input
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  placeholder="your.email@example.com"
-                  required
-                  disabled={otpSent}
-                  autoComplete="off"
-                />
-              </div>
-              
-              {otpSent && (
-                <div className="form-group">
-                  <label>Enter OTP *</label>
-                  <input
-                    type="text"
-                    name="otp"
-                    value={formData.otp}
-                    onChange={handleInputChange}
-                    placeholder="000000"
-                    maxLength={6}
-                    className="otp-input"
-                    required
-                    autoComplete="off"
-                  />
-                </div>
-              )}
-              
-              <button type="submit" className="btn btn-primary" disabled={loading}>
-                {loading ? (otpSent ? 'Verifying...' : 'Sending...') : (otpSent ? 'Verify OTP →' : 'Send OTP')}
-              </button>
-            </form>
-          ) : (
-            <form onSubmit={handleCompleteRegistration} className="auth-form">
-              {/* Circular DP Upload */}
-              <div className="dp-upload-container" onClick={handleDpClick}>
-                {dpPreview ? (
-                  <img src={dpPreview} alt="Profile" className="dp-preview" />
-                ) : (
-                  <div className="dp-placeholder">
-                    <span className="camera-icon">📷</span>
-                    <span className="dp-text">Add Photo</span>
-                  </div>
-                )}
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  name="dp_file"
-                  onChange={handleFileChange}
-                  accept="image/*"
-                  className="dp-input"
-                />
-              </div>
-
-              {/* Form Fields */}
-              <div className="form-group">
-                <label>Full Name *</label>
+                <label>Enter OTP *</label>
                 <input
                   type="text"
-                  name="name"
-                  value={formData.name}
+                  name="otp"
+                  value={formData.otp}
                   onChange={handleInputChange}
-                  placeholder="Your full name"
+                  placeholder="000000"
+                  maxLength={6}
+                  className="otp-input"
                   required
                   autoComplete="off"
                 />
               </div>
+            )}
+            
+            <button type="submit" className="btn btn-primary" disabled={loading}>
+              {loading ? (otpSent ? 'Verifying...' : 'Sending...') : (otpSent ? 'Verify OTP →' : 'Send OTP')}
+            </button>
+          </form>
+        ) : (
+          <form onSubmit={handleCompleteRegistration} className="auth-form">
+            {/* Circular DP Upload */}
+            <div className="dp-upload-container" onClick={handleDpClick}>
+              {dpPreview ? (
+                <img src={dpPreview} alt="Profile" className="dp-preview" />
+              ) : (
+                <div className="dp-placeholder">
+                  <span className="camera-icon">📷</span>
+                  <span className="dp-text">Add Photo</span>
+                </div>
+              )}
+              <input
+                ref={fileInputRef}
+                type="file"
+                name="dp_file"
+                onChange={handleFileChange}
+                accept="image/*"
+                className="dp-input"
+              />
+            </div>
 
-              <div className="form-group">
-                <label>Password *</label>
-                <div className="password-input-container">
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    name="password"
-                    value={formData.password}
-                    onChange={handleInputChange}
-                    placeholder="Create password"
-                    required
-                    autoComplete="new-password"
-                    autoCorrect="off"
-                    autoCapitalize="off"
-                    spellCheck="false"
-                  />
-                  <button
-                    type="button"
-                    className="password-toggle"
-                    onClick={() => setShowPassword(!showPassword)}
-                    aria-label={showPassword ? "Hide password" : "Show password"}
-                  >
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      {showPassword ? (
-                        <>
-                          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                          <circle cx="12" cy="12" r="3"/>
-                        </>
-                      ) : (
-                        <>
-                          <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
-                          <line x1="1" y1="1" x2="23" y2="23"/>
-                        </>
-                      )}
-                    </svg>
-                  </button>
-                </div>
-                <div className="password-requirements">
-                  {passwordErrors.length > 0 ? (
-                    <small className="password-error">
-                      Missing: {passwordErrors.join(', ')}
-                    </small>
-                  ) : formData.password.length > 0 ? (
-                    <small className="password-success">✓ Password meets all requirements</small>
-                  ) : (
-                    <small>Password must contain 8+ characters with uppercase, lowercase, number and special character</small>
-                  )}
-                </div>
+            {/* Form Fields */}
+            <div className="form-group">
+              <label>Full Name *</label>
+              <input
+                type="text"
+                name="name"
+                value={formData.name}
+                onChange={handleInputChange}
+                placeholder="Your full name"
+                required
+                autoComplete="off"
+              />
+            </div>
+
+            <div className="form-group">
+              <label>Password *</label>
+              <div className="password-input-container">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  name="password"
+                  value={formData.password}
+                  onChange={handleInputChange}
+                  placeholder="Create password"
+                  required
+                  autoComplete="new-password"
+                  autoCorrect="off"
+                  autoCapitalize="off"
+                  spellCheck="false"
+                />
+                <button
+                  type="button"
+                  className="password-toggle"
+                  onClick={() => setShowPassword(!showPassword)}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                >
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    {showPassword ? (
+                      <>
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                        <circle cx="12" cy="12" r="3"/>
+                      </>
+                    ) : (
+                      <>
+                        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
+                        <line x1="1" y1="1" x2="23" y2="23"/>
+                      </>
+                    )}
+                  </svg>
+                </button>
               </div>
-
-              <div className="form-group">
-                <label>Confirm Password *</label>
-                <div className="password-input-container">
-                  <input
-                    type={showConfirmPassword ? "text" : "password"}
-                    name="confirm_password"
-                    value={formData.confirm_password}
-                    onChange={handleInputChange}
-                    placeholder="Confirm password"
-                    required
-                    autoComplete="new-password"
-                    autoCorrect="off"
-                    autoCapitalize="off"
-                    spellCheck="false"
-                  />
-                  <button
-                    type="button"
-                    className="password-toggle"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    aria-label={showConfirmPassword ? "Hide password" : "Show password"}
-                  >
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      {showConfirmPassword ? (
-                        <>
-                          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                          <circle cx="12" cy="12" r="3"/>
-                        </>
-                      ) : (
-                        <>
-                          <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
-                          <line x1="1" y1="1" x2="23" y2="23"/>
-                        </>
-                      )}
-                    </svg>
-                  </button>
-                </div>
+              <div className="password-requirements">
+                {formData.password.length > 0 && (
+                  <small className={passwordErrors.length === 0 ? 'password-success' : 'password-error'}>
+                    {passwordErrors.length === 0 ? '✓ Password meets all requirements' : `Missing: ${getNextMissingRequirement(formData.password)}`}
+                  </small>
+                )}
               </div>
+            </div>
 
-              <button type="submit" className="btn btn-primary" disabled={loading}>
-                {loading ? 'Registering...' : 'Complete Registration'}
-              </button>
-            </form>
-          )}
-        </div>
+            <div className="form-group">
+              <label>Confirm Password *</label>
+              <div className="password-input-container">
+                <input
+                  type={showConfirmPassword ? "text" : "password"}
+                  name="confirm_password"
+                  value={formData.confirm_password}
+                  onChange={handleInputChange}
+                  placeholder="Confirm password"
+                  required
+                  autoComplete="new-password"
+                  autoCorrect="off"
+                  autoCapitalize="off"
+                  spellCheck="false"
+                />
+                <button
+                  type="button"
+                  className="password-toggle"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+                >
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    {showConfirmPassword ? (
+                      <>
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                        <circle cx="12" cy="12" r="3"/>
+                      </>
+                    ) : (
+                      <>
+                        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
+                        <line x1="1" y1="1" x2="23" y2="23"/>
+                      </>
+                    )}
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <button type="submit" className="btn btn-primary" disabled={loading}>
+              {loading ? 'Registering...' : 'Complete Registration'}
+            </button>
+          </form>
+        )}
       </div>
     </div>
   )

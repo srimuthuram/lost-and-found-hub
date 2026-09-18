@@ -4,7 +4,8 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(15, 23, 42, 0.8);
+  backdrop-filter: blur(4px);
   display: flex;
   align-items: flex-start;
   justify-content: flex-end;
@@ -13,13 +14,14 @@
 }
 
 .notification-panel {
-  background: white;
+  background: #1e2937;
+  border: 1px solid #334155;
   border-radius: 12px;
   max-width: 400px;
   width: 100%;
   max-height: 80vh;
   overflow: hidden;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 20px 25px -5px rgba(15, 23, 42, 0.5), 0 0 20px rgba(59, 130, 246, 0.2);
   margin-top: 60px;
 }
 
@@ -28,14 +30,15 @@
   justify-content: space-between;
   align-items: center;
   padding: 1rem;
-  border-bottom: 1px solid #e5e7eb;
-  background: #f9fafb;
+  border-bottom: 1px solid #334155;
+  background: linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%);
 }
 
 .notification-header h2 {
   margin: 0;
   font-size: 1.125rem;
-  color: #1f2937;
+  color: #f8fafc;
+  font-weight: 600;
 }
 
 .close-button {
@@ -43,14 +46,14 @@
   border: none;
   font-size: 1.5rem;
   cursor: pointer;
-  color: #6b7280;
+  color: rgba(255, 255, 255, 0.8);
   padding: 0;
   line-height: 1;
-  transition: color 0.2s;
+  transition: color 0.2s ease;
 }
 
 .close-button:hover {
-  color: #374151;
+  color: white;
 }
 
 .notification-body {
@@ -65,17 +68,19 @@
   align-items: center;
   justify-content: center;
   padding: 3rem 1rem;
-  color: #6b7280;
+  color: #94a3b8;
   text-align: center;
 }
 
 .notification-empty p {
   margin: 0 0 0.5rem 0;
   font-size: 0.875rem;
+  color: #cbd5e1;
 }
 
 .notification-empty small {
   font-size: 0.75rem;
+  color: #64748b;
 }
 
 .notification-list {
@@ -85,13 +90,14 @@
 
 .notification-item {
   padding: 1rem;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid #334155;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: all 0.3s ease;
 }
 
 .notification-item:hover {
-  background-color: #f9fafb;
+  background-color: rgba(59, 130, 246, 0.1);
+  border-left: 3px solid #3b82f6;
 }
 
 .notification-item-header {
@@ -109,29 +115,31 @@
 }
 
 .notification-type.lost {
-  background: #fee2e2;
-  color: #dc2626;
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+  border: 1px solid #ef4444;
 }
 
 .notification-type.found {
-  background: #d1fae5;
-  color: #059669;
+  background: rgba(16, 185, 129, 0.2);
+  color: #10b981;
+  border: 1px solid #10b981;
 }
 
 .notification-item-title {
   font-weight: 600;
-  color: #1f2937;
+  color: #f8fafc;
   font-size: 0.875rem;
   margin-bottom: 0.25rem;
 }
 
 .notification-item-reporter {
-  color: #6b7280;
+  color: #94a3b8;
   font-size: 0.875rem;
   margin-bottom: 0.25rem;
 }
 
 .notification-item-location {
-  color: #374151;
+  color: #cbd5e1;
   font-size: 0.75rem;
 }

@@ -83,13 +83,9 @@ function OnboardingTour({ onComplete, isAuthenticated }) {
   const tourSteps = isAuthenticated ? authTourSteps : unauthTourSteps
 
   useEffect(() => {
-    // Check if user has already seen the tour (different keys for auth vs unauth)
-    const storageKey = isAuthenticated ? 'onboarding_tour_completed_auth' : 'onboarding_tour_completed_unauth'
-    const hasSeenTour = localStorage.getItem(storageKey)
-    if (!hasSeenTour) {
-      setShowTour(true)
-    }
-  }, [isAuthenticated])
+    // Always show the tour on page load - persistent behavior
+    setShowTour(true)
+  }, [])
 
   const handleNext = () => {
     if (currentStep < tourSteps.length - 1) {
@@ -106,8 +102,6 @@ function OnboardingTour({ onComplete, isAuthenticated }) {
   }
 
   const handleComplete = () => {
-    const storageKey = isAuthenticated ? 'onboarding_tour_completed_auth' : 'onboarding_tour_completed_unauth'
-    localStorage.setItem(storageKey, 'true')
     setShowTour(false)
     if (onComplete) {
       onComplete()
@@ -115,28 +109,11 @@ function OnboardingTour({ onComplete, isAuthenticated }) {
   }
 
   const handleSkip = () => {
-    const storageKey = isAuthenticated ? 'onboarding_tour_completed_auth' : 'onboarding_tour_completed_unauth'
-    localStorage.setItem(storageKey, 'true')
     setShowTour(false)
     if (onComplete) {
       onComplete()
     }
   }
-
-  // Prevent body scroll when tour is open
-  useEffect(() => {
-    if (showTour) {
-      document.body.style.overflow = 'hidden'
-      document.body.classList.add('onboarding-open')
-    } else {
-      document.body.style.overflow = ''
-      document.body.classList.remove('onboarding-open')
-    }
-    return () => {
-      document.body.style.overflow = ''
-      document.body.classList.remove('onboarding-open')
-    }
-  }, [showTour])
 
   if (!showTour) {
     return null
@@ -145,18 +122,10 @@ function OnboardingTour({ onComplete, isAuthenticated }) {
   const currentTourStep = tourSteps[currentStep]
 
   return (
-    <div className="onboarding-overlay">
-      <div className="onboarding-modal">
+    <div className="onboarding-inline">
+      <div className="onboarding-card">
         <div className="onboarding-header">
           <div className="onboarding-icon">{currentTourStep.icon}</div>
-          <h2 className="onboarding-title">{currentTourStep.title}</h2>
-          <button 
-            className="onboarding-close" 
-            onClick={handleSkip}
-            aria-label="Close tour"
-          >
-            ✕
-          </button>
         </div>
 
         <div className="onboarding-content">
@@ -172,9 +141,6 @@ function OnboardingTour({ onComplete, isAuthenticated }) {
               />
             ))}
           </div>
-          <div className="progress-text">
-            Step {currentStep + 1} of {tourSteps.length}
-          </div>
         </div>
 
         <div className="onboarding-footer">
@@ -183,23 +149,16 @@ function OnboardingTour({ onComplete, isAuthenticated }) {
               className="onboarding-button onboarding-button-secondary"
               onClick={handlePrevious}
             >
-              Previous
+              ← Back
             </button>
           )}
           
-          <button 
-            className="onboarding-button onboarding-button-primary"
-            onClick={handleNext}
-          >
-            {currentStep === tourSteps.length - 1 ? 'Get Started' : 'Next'}
-          </button>
-
-          {currentStep === 0 && (
+          {currentStep < tourSteps.length - 1 && (
             <button 
-              className="onboarding-button onboarding-button-tertiary"
-              onClick={handleSkip}
+              className="onboarding-button onboarding-button-primary"
+              onClick={handleNext}
             >
-              Skip Tour
+              Next →
             </button>
           )}
         </div>

@@ -4,7 +4,7 @@ import LoginForm from './LoginForm'
 import MultiStepRegistration from './MultiStepRegistration'
 import './AuthManager.css'
 
-function AuthManager({ onAuthSuccess }) {
+function AuthManager({ onAuthSuccess, showOnboarding, onOnboardingComplete }) {
   const [currentView, setCurrentView] = useState('gateway') // gateway, register, login
 
   const handleRegisterClick = () => {
@@ -21,7 +21,14 @@ function AuthManager({ onAuthSuccess }) {
 
   // Render different views based on currentView state
   if (currentView === 'gateway') {
-    return <Gateway onRegisterClick={handleRegisterClick} onLoginClick={handleLoginClick} />
+    return (
+      <Gateway 
+        onRegisterClick={handleRegisterClick} 
+        onLoginClick={handleLoginClick}
+        showOnboarding={showOnboarding}
+        onOnboardingComplete={onOnboardingComplete}
+      />
+    )
   }
 
   if (currentView === 'login') {

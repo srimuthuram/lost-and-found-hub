@@ -19,14 +19,15 @@
 .contact-field label {
   font-size: 0.75rem;
   font-weight: 500;
-  color: #6b7280;
+  color: #cbd5e1;
 }
 
 .contact-field span {
   font-size: 0.875rem;
-  color: #1f2937;
+  color: #f8fafc;
   padding: 0.5rem;
-  background: #f3f4f6;
+  background: #334155;
+  border: 1px solid #475569;
   border-radius: 6px;
 }
 
@@ -36,21 +37,21 @@
 
 .security-question {
   padding: 0.75rem;
-  background: #fef3c7;
+  background: rgba(245, 158, 11, 0.2);
   border: 1px solid #f59e0b;
   border-radius: 6px;
   font-size: 0.875rem;
-  color: #92400e;
+  color: #fcd34d;
   margin-bottom: 0.5rem;
   font-weight: 500;
 }
 
 .success-message {
   padding: 1rem;
-  background: #d1fae5;
+  background: rgba(16, 185, 129, 0.2);
   border: 1px solid #10b981;
   border-radius: 6px;
-  color: #065f46;
+  color: #34d399;
   text-align: center;
 }
 
@@ -59,16 +60,17 @@
   cursor: pointer;
   width: 100%;
   padding: 2rem;
-  border: 2px dashed #d1d5db;
+  border: 2px dashed #475569;
   border-radius: 8px;
-  background: #f9fafb;
+  background: #334155;
   text-align: center;
-  transition: all 0.2s;
+  transition: all 0.3s ease;
 }
 
 .file-upload-container:hover {
-  border-color: #667eea;
-  background: #f0f9ff;
+  border-color: #0ea5e9;
+  background: #1e2937;
+  box-shadow: 0 0 10px rgba(14, 165, 233, 0.3);
 }
 
 .file-upload-placeholder {
@@ -76,7 +78,7 @@
   flex-direction: column;
   align-items: center;
   gap: 0.5rem;
-  color: #6b7280;
+  color: #94a3b8;
 }
 
 .file-upload-placeholder span:first-child {

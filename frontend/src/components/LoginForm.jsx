@@ -51,15 +51,15 @@ function LoginForm({ onLoginSuccess, onBack }) {
 
   return (
     <div className="login-container">
-      <div className="login-card">
-        <button onClick={onBack} className="back-btn">
-          ← Back
-        </button>
-        
-        <h2 className="login-title">Log In</h2>
-        
-        {error && <div className="error-message">{error}</div>}
+      <button onClick={onBack} className="back-btn">
+        ← Back
+      </button>
+      
+      <h2 className="login-title">Log In</h2>
+      
+      {error && <div className="error-message">{error}</div>}
 
+      <div className="auth-container">
         <form onSubmit={handleSubmit} className="login-form">
           <div className="form-group">
             <label>Email *</label>

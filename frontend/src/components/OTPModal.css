@@ -6,11 +6,12 @@
 
 .otp-instructions {
   font-size: 0.875rem;
-  color: #6b7280;
+  color: #cbd5e1;
   line-height: 1.5;
   text-align: center;
   padding: 0.5rem;
-  background: #f3f4f6;
+  background: #334155;
+  border: 1px solid #475569;
   border-radius: 6px;
 }
 
@@ -20,13 +21,23 @@
   text-align: center;
   font-family: monospace;
   font-weight: 600;
+  background: #334155;
+  color: #f8fafc;
+  border: 1px solid #475569;
+}
+
+.otp-input:focus {
+  outline: none;
+  border-color: #0ea5e9;
+  box-shadow: 0 0 0 2px rgba(14, 165, 233, 0.2), 0 0 10px rgba(14, 165, 233, 0.3);
 }
 
 .error-message {
-  color: #dc2626;
+  color: #f43f5e;
   font-size: 0.875rem;
   padding: 0.5rem;
-  background: #fee2e2;
+  background: rgba(244, 63, 94, 0.2);
+  border: 1px solid #f43f5e;
   border-radius: 6px;
   text-align: center;
 }

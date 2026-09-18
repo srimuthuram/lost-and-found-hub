@@ -156,31 +156,18 @@ function App() {
 
   const handleAuthSuccess = (userData) => {
     setUser(userData)
-    // Only show auth tour for truly new users (first-time login after registration)
-    const hasSeenAuthTour = localStorage.getItem('onboarding_tour_completed_auth')
-    if (!hasSeenAuthTour) {
-      // Check if this is a fresh registration (user just registered in this session)
-      const isFreshRegistration = sessionStorage.getItem('fresh_registration')
-      if (isFreshRegistration === 'true') {
-        setShowOnboarding(true)
-        sessionStorage.removeItem('fresh_registration')
-      } else {
-        // Existing user logging in - mark tour as complete
-        localStorage.setItem('onboarding_tour_completed_auth', 'true')
-        setShowOnboarding(false)
-      }
-    }
+    // Always show onboarding tour for persistent behavior
+    setShowOnboarding(true)
   }
 
   const handleOnboardingComplete = () => {
     setShowOnboarding(false)
   }
 
-  // Check if onboarding should show for unauthenticated users
+  // Always show onboarding for unauthenticated users - persistent behavior
   useEffect(() => {
     if (!user) {
-      const hasSeenUnauthTour = localStorage.getItem('onboarding_tour_completed_unauth')
-      setShowOnboarding(!hasSeenUnauthTour)
+      setShowOnboarding(true)
     }
   }, [user])
 
@@ -362,15 +349,11 @@ function App() {
   if (!user) {
     return (
       <>
-        {/* Onboarding Tour for unauthenticated users */}
-        {showOnboarding && (
-          <OnboardingTour
-            onComplete={handleOnboardingComplete}
-            isAuthenticated={false}
-          />
-        )}
-        <TopNavbar />
-        <AuthManager onAuthSuccess={handleAuthSuccess} />
+        <AuthManager 
+          onAuthSuccess={handleAuthSuccess} 
+          showOnboarding={showOnboarding}
+          onOnboardingComplete={handleOnboardingComplete}
+        />
       </>
     )
   }
@@ -383,6 +366,16 @@ function App() {
         unreadCount={unreadCount}
         onNotificationsClick={handleNotificationsClick}
       />
+      
+      {/* Onboarding Tour for authenticated users - inline */}
+      {showOnboarding && (
+        <div className="onboarding-inline-wrapper">
+          <OnboardingTour
+            onComplete={handleOnboardingComplete}
+            isAuthenticated={true}
+          />
+        </div>
+      )}
       
       {showNotifications && (
         <NotificationCenter 
@@ -621,14 +614,6 @@ function App() {
         otherUser={chatModal.otherUser}
         item={chatModal.item}
       />
-
-      {/* Onboarding Tour for authenticated users */}
-      {showOnboarding && (
-        <OnboardingTour
-          onComplete={handleOnboardingComplete}
-          isAuthenticated={true}
-        />
-      )}
 
       {/* Create Item Modal */}
       {showForm && (
