@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { loginUser } from '../services/api'
 import './LoginForm.css'
 
-function LoginForm({ onLoginSuccess, onBack }) {
+function LoginForm({ onLoginSuccess, onBack, onForgotPassword }) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -110,6 +110,16 @@ function LoginForm({ onLoginSuccess, onBack }) {
                 </svg>
               </button>
             </div>
+          </div>
+
+          <div className="forgot-password-link">
+            <button 
+              type="button" 
+              className="forgot-password-btn"
+              onClick={onForgotPassword}
+            >
+              Forgot Password?
+            </button>
           </div>
 
           <button type="submit" className="btn btn-primary" disabled={loading}>

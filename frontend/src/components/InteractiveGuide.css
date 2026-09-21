@@ -1,0 +1,241 @@
+.guide-trigger {
+  position: fixed;
+  top: 5rem;
+  right: 2rem;
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #3b82f6, #06b6d4);
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+  transition: all 0.3s ease;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.guide-trigger:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 20px rgba(14, 165, 233, 0.5);
+}
+
+.guide-icon {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: white;
+  line-height: 1;
+}
+
+.guide-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(15, 23, 42, 0.8);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.guide-modal {
+  background: #1e2937;
+  border: 1px solid #334155;
+  border-radius: 16px;
+  max-width: 500px;
+  width: 90%;
+  padding: 2rem;
+  position: relative;
+  box-shadow: 0 20px 60px rgba(15, 23, 42, 0.5), 0 0 20px rgba(59, 130, 246, 0.2);
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.guide-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  line-height: 1;
+}
+
+.guide-close:hover {
+  background: rgba(59, 130, 246, 0.2);
+  color: #f8fafc;
+}
+
+.guide-content {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.guide-icon-large {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+}
+
+.guide-title {
+  color: #f8fafc;
+  margin: 0 0 1rem 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.guide-description {
+  color: #cbd5e1;
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.guide-progress {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 2rem;
+  padding: 0 0.5rem;
+}
+
+.progress-dots {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.progress-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #475569;
+  transition: all 0.3s ease;
+}
+
+.progress-dot.active {
+  background: #3b82f6;
+  box-shadow: 0 0 8px rgba(59, 130, 246, 0.5);
+}
+
+.progress-text {
+  color: #94a3b8;
+  font-size: 0.875rem;
+}
+
+.guide-footer {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: space-between;
+}
+
+.guide-button {
+  padding: 0.75rem 1.25rem;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.guide-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.guide-button-secondary {
+  background: #334155;
+  color: #cbd5e1;
+}
+
+.guide-button-secondary:hover:not(:disabled) {
+  background: #475569;
+}
+
+.guide-button-skip {
+  background: transparent;
+  color: #94a3b8;
+  border: 1px solid #475569;
+}
+
+.guide-button-skip:hover {
+  color: #cbd5e1;
+  border-color: #64748b;
+}
+
+.guide-button-primary {
+  background: linear-gradient(135deg, #3b82f6, #06b6d4);
+  color: white;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.guide-button-primary:hover {
+  background: linear-gradient(135deg, #2563eb, #0891b2);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(14, 165, 233, 0.4);
+}
+
+@media (max-width: 768px) {
+  .guide-trigger {
+    top: 4.5rem;
+    right: 1.5rem;
+    width: 3rem;
+    height: 3rem;
+  }
+
+  .guide-icon {
+    font-size: 1.25rem;
+  }
+
+  .guide-modal {
+    padding: 1.5rem;
+  }
+
+  .guide-icon-large {
+    font-size: 3rem;
+  }
+
+  .guide-title {
+    font-size: 1.25rem;
+  }
+
+  .guide-description {
+    font-size: 0.875rem;
+  }
+
+  .guide-footer {
+    flex-direction: column;
+  }
+
+  .guide-button {
+    width: 100%;
+  }
+}

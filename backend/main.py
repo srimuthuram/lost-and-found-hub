@@ -44,7 +44,19 @@ class VerifyOTPAndRegister(BaseModel):
     password: str = Field(..., min_length=8)
     dp_url: Optional[str] = None
 
-    @field_validator('password')
+class SendForgotPasswordOTPRequest(BaseModel):
+    email: str = Field(..., pattern=r"[^@]+@[^@]+\.[^@]+")
+
+class VerifyForgotPasswordOTPRequest(BaseModel):
+    email: str = Field(..., pattern=r"[^@]+@[^@]+\.[^@]+")
+    otp_code: str = Field(..., min_length=6, max_length=6)
+
+class ResetPasswordRequest(BaseModel):
+    email: str = Field(..., pattern=r"[^@]+@[^@]+\.[^@]+")
+    otp_code: str = Field(..., min_length=6, max_length=6)
+    new_password: str = Field(..., min_length=8)
+
+    @field_validator('new_password')
     @classmethod
     def validate_password(cls, v: str) -> str:
         # Truncate to 72 bytes to prevent bcrypt error
@@ -433,6 +445,157 @@ def verify_otp_only(otp_data: OTPVerify):
         conn.close()
         
         return {"message": "OTP verified successfully"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# POST /auth/send-forgot-password-otp: Send OTP for password reset
+@app.post("/auth/send-forgot-password-otp")
+def send_forgot_password_otp(request: SendForgotPasswordOTPRequest):
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        # Check if email is registered and verified
+        cursor.execute(
+            "SELECT id, is_verified FROM users WHERE email = %s",
+            (request.email,)
+        )
+        existing_user = cursor.fetchone()
+        
+        if not existing_user:
+            cursor.close()
+            conn.close()
+            raise HTTPException(status_code=400, detail="Email is not registered")
+        
+        if not existing_user[1]:
+            cursor.close()
+            conn.close()
+            raise HTTPException(status_code=400, detail="Email is not verified")
+        
+        # Generate and send OTP
+        otp_code = generate_otp()
+        store_otp(request.email, otp_code)
+        send_otp_email(request.email, otp_code)
+        
+        cursor.close()
+        conn.close()
+        
+        return {
+            "message": "OTP sent successfully for password reset",
+            "email": request.email
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# POST /auth/verify-forgot-password-otp: Verify OTP for password reset
+@app.post("/auth/verify-forgot-password-otp")
+def verify_forgot_password_otp(data: VerifyForgotPasswordOTPRequest):
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        # Get the most recent OTP for this email
+        cursor.execute(
+            "SELECT otp_code, expires_at FROM otp_storage WHERE email = %s ORDER BY created_at DESC LIMIT 1",
+            (data.email,)
+        )
+        otp_record = cursor.fetchone()
+        
+        if not otp_record:
+            cursor.close()
+            conn.close()
+            raise HTTPException(status_code=400, detail="No OTP found for this email")
+        
+        stored_otp, expires_at = otp_record
+        
+        # Check if OTP is expired
+        if datetime.now() > expires_at:
+            cursor.close()
+            conn.close()
+            raise HTTPException(status_code=400, detail="OTP has expired")
+        
+        # Check if OTP matches
+        if stored_otp != data.otp_code:
+            cursor.close()
+            conn.close()
+            raise HTTPException(status_code=400, detail="Invalid OTP")
+        
+        cursor.close()
+        conn.close()
+        
+        return {"message": "OTP verified successfully"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# POST /auth/reset-password: Reset user password
+@app.post("/auth/reset-password")
+def reset_password(data: ResetPasswordRequest):
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        # Verify OTP first
+        cursor.execute(
+            "SELECT otp_code, expires_at FROM otp_storage WHERE email = %s ORDER BY created_at DESC LIMIT 1",
+            (data.email,)
+        )
+        otp_record = cursor.fetchone()
+        
+        if not otp_record:
+            cursor.close()
+            conn.close()
+            raise HTTPException(status_code=400, detail="No OTP found for this email")
+        
+        stored_otp, expires_at = otp_record
+        
+        # Check if OTP is expired
+        if datetime.now() > expires_at:
+            cursor.close()
+            conn.close()
+            raise HTTPException(status_code=400, detail="OTP has expired")
+        
+        # Check if OTP matches
+        if stored_otp != data.otp_code:
+            cursor.close()
+            conn.close()
+            raise HTTPException(status_code=400, detail="Invalid OTP")
+        
+        # Validate password requirements
+        password = data.new_password
+        if len(password) < 8:
+            raise HTTPException(status_code=400, detail="Password must be at least 8 characters")
+        if not re.search(r'[A-Z]', password):
+            raise HTTPException(status_code=400, detail="Password must contain at least one uppercase letter")
+        if not re.search(r'[a-z]', password):
+            raise HTTPException(status_code=400, detail="Password must contain at least one lowercase letter")
+        if not re.search(r'\d', password):
+            raise HTTPException(status_code=400, detail="Password must contain at least one number")
+        if not re.search(r'[!@#$%^&*(),.?":{}|<>]', password):
+            raise HTTPException(status_code=400, detail="Password must contain at least one special character")
+        
+        # Hash the new password
+        new_password_hash = hash_password(password)
+        
+        # Update user password
+        cursor.execute(
+            "UPDATE users SET password_hash = %s WHERE email = %s",
+            (new_password_hash, data.email)
+        )
+        
+        # Delete the used OTP
+        cursor.execute("DELETE FROM otp_storage WHERE email = %s", (data.email,))
+        
+        conn.commit()
+        cursor.close()
+        conn.close()
+        
+        return {"message": "Password reset successfully"}
     except HTTPException:
         raise
     except Exception as e:

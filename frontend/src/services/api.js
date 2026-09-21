@@ -427,3 +427,72 @@ export const reactivateItem = async (itemId) => {
     throw error;
   }
 };
+
+// Send OTP for forgot password
+export const sendForgotPasswordOTP = async (email) => {
+  try {
+    const response = await fetch(`${BASE_URL}/auth/send-forgot-password-otp`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email }),
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.detail || 'Failed to send OTP');
+    }
+    
+    return await response.json();
+  } catch (error) {
+    console.error('Error sending forgot password OTP:', error);
+    throw error;
+  }
+};
+
+// Verify OTP for forgot password
+export const verifyForgotPasswordOTP = async (email, otpCode) => {
+  try {
+    const response = await fetch(`${BASE_URL}/auth/verify-forgot-password-otp`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email, otp_code: otpCode }),
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.detail || 'Failed to verify OTP');
+    }
+    
+    return await response.json();
+  } catch (error) {
+    console.error('Error verifying forgot password OTP:', error);
+    throw error;
+  }
+};
+
+// Reset password
+export const resetPassword = async (resetData) => {
+  try {
+    const response = await fetch(`${BASE_URL}/auth/reset-password`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(resetData),
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.detail || 'Failed to reset password');
+    }
+    
+    return await response.json();
+  } catch (error) {
+    console.error('Error resetting password:', error);
+    throw error;
+  }
+};

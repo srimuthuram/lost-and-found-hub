@@ -10,7 +10,7 @@
   align-items: flex-start;
   justify-content: flex-end;
   padding: 1rem;
-  z-index: 2000;
+  z-index: 10000;
 }
 
 .notification-panel {

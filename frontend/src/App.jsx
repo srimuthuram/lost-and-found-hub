@@ -6,12 +6,14 @@ import ContactModal from './components/ContactModal'
 import ChatModal from './components/ChatModal'
 import NotificationCenter from './components/NotificationCenter'
 import OnboardingTour from './components/OnboardingTour'
+import InteractiveGuide from './components/InteractiveGuide'
 import './App.css'
 import './components/ContactModal.css'
 import './components/ChatModal.css'
 import './components/NotificationCenter.css'
 import './components/OTPModal.css'
 import './components/OnboardingTour.css'
+import './components/InteractiveGuide.css'
 
 function App() {
   const [user, setUser] = useState(null)
@@ -156,8 +158,8 @@ function App() {
 
   const handleAuthSuccess = (userData) => {
     setUser(userData)
-    // Always show onboarding tour for persistent behavior
-    setShowOnboarding(true)
+    // Don't show onboarding for authenticated users - use floating guide instead
+    setShowOnboarding(false)
   }
 
   const handleOnboardingComplete = () => {
@@ -360,23 +362,16 @@ function App() {
 
   return (
     <div className="app">
-      <TopNavbar 
-        user={user} 
+      <TopNavbar
+        user={user}
         onLogout={handleLogout}
         unreadCount={unreadCount}
         onNotificationsClick={handleNotificationsClick}
       />
-      
-      {/* Onboarding Tour for authenticated users - inline */}
-      {showOnboarding && (
-        <div className="onboarding-inline-wrapper">
-          <OnboardingTour
-            onComplete={handleOnboardingComplete}
-            isAuthenticated={true}
-          />
-        </div>
-      )}
-      
+
+      {/* Interactive Guide for authenticated users */}
+      <InteractiveGuide />
+
       {showNotifications && (
         <NotificationCenter 
           user={user} 
