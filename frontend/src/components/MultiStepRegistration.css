@@ -69,24 +69,9 @@ input:disabled {
   font-size: 0.875rem;
 }
 
-.password-error {
-  color: #f43f5e;
-  font-weight: 500;
-}
-
-.password-success {
-  color: #34d399;
-  font-weight: 500;
-}
-
-.password-error {
-  color: #f43f5e;
-  font-weight: 500;
-}
-
-.password-success {
-  color: #34d399;
-  font-weight: 500;
+.password-requirements small {
+  color: #94a3b8;
+  white-space: nowrap;
 }
 
 .password-input-container {
@@ -141,8 +126,8 @@ input:disabled {
   background: #1e2937;
   border: 1px solid #334155;
   border-radius: 16px;
-  padding: 2rem;
-  max-width: 400px;
+  padding: 2.5rem;
+  max-width: 450px;
   width: 100%;
   position: relative;
   z-index: 1;
@@ -233,10 +218,6 @@ input:disabled {
 .auth-form .btn {
   margin-top: 2rem;
 }
-  opacity: 0.6;
-  cursor: not-allowed;
-  transform: none;
-}
 
 .error-message {
   background: rgba(244, 63, 94, 0.1);
@@ -249,6 +230,111 @@ input:disabled {
   text-align: center;
   position: relative;
   z-index: 1;
+}
+
+.password-error-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(15, 23, 42, 0.8);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.password-error-modal {
+  background: #1e2937;
+  border: 1px solid #334155;
+  border-radius: 16px;
+  max-width: 400px;
+  width: 90%;
+  padding: 2rem;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(15, 23, 42, 0.5), 0 0 20px rgba(59, 130, 246, 0.2);
+  position: relative;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(30px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.password-error-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  line-height: 1;
+}
+
+.password-error-close:hover {
+  background: rgba(59, 130, 246, 0.2);
+  color: #f8fafc;
+}
+
+.password-error-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.password-error-title {
+  color: #f8fafc;
+  margin: 0 0 1rem 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.password-error-message {
+  color: #cbd5e1;
+  margin: 0 0 2rem 0;
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.password-error-button {
+  background: linear-gradient(135deg, #3b82f6, #06b6d4);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 0.875rem 2rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.password-error-button:hover {
+  background: linear-gradient(135deg, #2563eb, #0891b2);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(14, 165, 233, 0.4);
 }
 
 .dp-upload-container {
@@ -307,5 +393,21 @@ input:disabled {
 
   .auth-form {
     max-width: 100%;
+  }
+
+  .password-error-modal {
+    padding: 1.5rem;
+  }
+
+  .password-error-icon {
+    font-size: 2rem;
+  }
+
+  .password-error-title {
+    font-size: 1.25rem;
+  }
+
+  .password-error-message {
+    font-size: 0.875rem;
   }
 }

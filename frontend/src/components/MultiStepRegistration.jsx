@@ -11,6 +11,8 @@ function MultiStepRegistration({ onAuthSuccess, onBack }) {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [passwordErrors, setPasswordErrors] = useState([])
   const [otpSent, setOtpSent] = useState(false)
+  const [showPasswordErrorModal, setShowPasswordErrorModal] = useState(false)
+  const [passwordErrorMessage, setPasswordErrorMessage] = useState('')
   const fileInputRef = useRef(null)
   
   const [formData, setFormData] = useState({
@@ -123,7 +125,8 @@ function MultiStepRegistration({ onAuthSuccess, onBack }) {
     try {
       // Password validation
       if (formData.password !== formData.confirm_password) {
-        setError('Passwords do not match')
+        setPasswordErrorMessage('Passwords do not match')
+        setShowPasswordErrorModal(true)
         setLoading(false)
         return
       }
@@ -151,7 +154,8 @@ function MultiStepRegistration({ onAuthSuccess, onBack }) {
       }
 
       if (passwordErrors.length > 0) {
-        setError(`Password must contain ${passwordErrors.join(', ')}`)
+        setPasswordErrorMessage(`Password must contain ${passwordErrors.join(', ')}`)
+        setShowPasswordErrorModal(true)
         setLoading(false)
         return
       }
@@ -326,11 +330,7 @@ function MultiStepRegistration({ onAuthSuccess, onBack }) {
                 </button>
               </div>
               <div className="password-requirements">
-                {formData.password.length > 0 && (
-                  <small className={passwordErrors.length === 0 ? 'password-success' : 'password-error'}>
-                    {passwordErrors.length === 0 ? '✓ Password meets all requirements' : `Missing: ${getNextMissingRequirement(formData.password)}`}
-                  </small>
-                )}
+                <small>Min 8 char including a uppercase,lowercase,number and special character</small>
               </div>
             </div>
 
@@ -378,6 +378,30 @@ function MultiStepRegistration({ onAuthSuccess, onBack }) {
           </form>
         )}
       </div>
+
+      {/* Password Error Modal */}
+      {showPasswordErrorModal && (
+        <div className="password-error-modal-overlay">
+          <div className="password-error-modal">
+            <button 
+              className="password-error-close" 
+              onClick={() => setShowPasswordErrorModal(false)}
+              aria-label="Close"
+            >
+              ✕
+            </button>
+            <div className="password-error-icon">⚠️</div>
+            <h3 className="password-error-title">Password Validation</h3>
+            <p className="password-error-message">{passwordErrorMessage}</p>
+            <button 
+              className="password-error-button"
+              onClick={() => setShowPasswordErrorModal(false)}
+            >
+              Got It
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
