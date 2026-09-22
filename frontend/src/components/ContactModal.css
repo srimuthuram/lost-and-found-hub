@@ -102,3 +102,72 @@
   border-radius: 6px;
   object-fit: cover;
 }
+
+@media (max-width: 640px) {
+  .contact-form {
+    gap: 0.75rem;
+  }
+
+  .contact-info {
+    gap: 0.5rem;
+  }
+
+  .contact-field span {
+    font-size: 0.8125rem;
+    padding: 0.4375rem;
+  }
+
+  .contact-form textarea {
+    font-size: 16px; /* Prevent zoom on iOS */
+  }
+
+  .security-question {
+    font-size: 0.8125rem;
+    padding: 0.625rem;
+  }
+
+  .file-upload-container {
+    padding: 0.75rem;
+  }
+
+  .file-upload-placeholder span:first-child {
+    font-size: 1.25rem;
+  }
+
+  .success-message {
+    font-size: 0.875rem;
+    padding: 0.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .contact-form {
+    gap: 0.625rem;
+  }
+
+  .contact-field label {
+    font-size: 0.6875rem;
+  }
+
+  .contact-field span {
+    font-size: 0.75rem;
+    padding: 0.375rem;
+  }
+
+  .security-question {
+    font-size: 0.75rem;
+    padding: 0.5rem;
+  }
+
+  .file-upload-container {
+    padding: 0.5rem;
+  }
+
+  .file-upload-placeholder span:first-child {
+    font-size: 1rem;
+  }
+
+  .file-upload-placeholder span:last-child {
+    font-size: 0.6875rem;
+  }
+}

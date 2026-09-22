@@ -236,6 +236,7 @@
 
   .guide-modal {
     padding: 1.5rem;
+    max-width: 95%;
   }
 
   .guide-icon-large {
@@ -256,5 +257,74 @@
 
   .guide-button {
     width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .guide-trigger {
+    top: auto;
+    bottom: 15rem;
+    right: 1rem;
+    width: 3rem;
+    min-height: 3rem;
+    padding: 0.5rem;
+  }
+
+  .guide-icon {
+    font-size: 1.25rem;
+  }
+
+  .guide-text {
+    font-size: 0.6rem;
+  }
+
+  .guide-modal {
+    padding: 1rem;
+    max-width: 100%;
+    margin: 0.5rem;
+  }
+
+  .guide-close {
+    top: 0.75rem;
+    right: 0.75rem;
+    width: 1.5rem;
+    height: 1.5rem;
+    font-size: 1.25rem;
+  }
+
+  .guide-icon-large {
+    font-size: 2.5rem;
+  }
+
+  .guide-title {
+    font-size: 1.125rem;
+  }
+
+  .guide-description {
+    font-size: 0.8125rem;
+  }
+
+  .guide-progress {
+    flex-direction: column;
+    gap: 0.5rem;
+    align-items: center;
+  }
+
+  .progress-dots {
+    gap: 0.4rem;
+  }
+
+  .progress-dot {
+    width: 6px;
+    height: 6px;
+  }
+
+  .progress-text {
+    font-size: 0.75rem;
+  }
+
+  .guide-button {
+    padding: 0.625rem 1rem;
+    font-size: 0.8125rem;
   }
 }
