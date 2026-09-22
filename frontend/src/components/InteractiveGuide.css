@@ -2,8 +2,10 @@
   position: fixed;
   top: 5rem;
   right: 2rem;
-  width: 3.5rem;
-  height: 3.5rem;
+  width: 4.5rem;
+  height: auto;
+  min-height: 4.5rem;
+  padding: 0.75rem;
   border-radius: 50%;
   background: linear-gradient(135deg, #3b82f6, #06b6d4);
   border: none;
@@ -12,8 +14,10 @@
   transition: all 0.3s ease;
   z-index: 9999;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 0.5rem;
 }
 
 .guide-trigger:hover {
@@ -22,9 +26,18 @@
 }
 
 .guide-icon {
-  font-size: 1.5rem;
+  font-size: 1.75rem;
   font-weight: 700;
   color: white;
+  line-height: 1;
+}
+
+.guide-text {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: white;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
   line-height: 1;
 }
 
@@ -61,16 +74,17 @@
   padding: 2rem;
   position: relative;
   box-shadow: 0 20px 60px rgba(15, 23, 42, 0.5), 0 0 20px rgba(59, 130, 246, 0.2);
-  animation: slideUp 0.3s ease-out;
+  animation: fadeIn 0.3s ease-out;
+  margin: auto;
 }
 
 @keyframes slideUp {
   from {
-    transform: translateY(20px);
+    transform: scale(0.95);
     opacity: 0;
   }
   to {
-    transform: translateY(0);
+    transform: scale(1);
     opacity: 1;
   }
 }
@@ -207,12 +221,17 @@
   .guide-trigger {
     top: 4.5rem;
     right: 1.5rem;
-    width: 3rem;
-    height: 3rem;
+    width: 3.5rem;
+    min-height: 3.5rem;
+    padding: 0.6rem;
   }
 
   .guide-icon {
-    font-size: 1.25rem;
+    font-size: 1.5rem;
+  }
+
+  .guide-text {
+    font-size: 0.65rem;
   }
 
   .guide-modal {

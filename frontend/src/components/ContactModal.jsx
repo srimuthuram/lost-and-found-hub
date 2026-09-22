@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { contactOwner } from '../services/api';
 
 const ContactModal = ({ isOpen, onClose, contactInfo, currentUser, itemId, onMessageSent, secretQuestion }) => {
@@ -10,6 +10,19 @@ const ContactModal = ({ isOpen, onClose, contactInfo, currentUser, itemId, onMes
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const fileInputRef = useRef(null);
+
+  // Reset form when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      setMessage('');
+      setVerificationAnswer('');
+      setProofImage(null);
+      setProofPreview(null);
+      setLoading(false);
+      setError('');
+      setSuccess(false);
+    }
+  }, [isOpen]);
 
   if (!isOpen) return null;
 

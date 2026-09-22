@@ -335,9 +335,12 @@ export const verifyOTP = async (email, otpCode) => {
 };
 
 // Get chat history for an item
-export const getChatHistory = async (itemId, userEmail) => {
+export const getChatHistory = async (itemId, userEmail, partnerEmail = null) => {
   try {
-    const url = `${API_BASE_URL}/chat?item_id=${itemId}&user_email=${encodeURIComponent(userEmail)}`;
+    let url = `${API_BASE_URL}/chat?item_id=${itemId}&user_email=${encodeURIComponent(userEmail)}`;
+    if (partnerEmail) {
+      url += `&partner_email=${encodeURIComponent(partnerEmail)}`;
+    }
     const response = await fetch(url);
     
     if (!response.ok) {
@@ -348,6 +351,24 @@ export const getChatHistory = async (itemId, userEmail) => {
     return data.messages || [];
   } catch (error) {
     console.error('Error fetching chat history:', error);
+    throw error;
+  }
+};
+
+// Get conversation partners for an item
+export const getChatPartners = async (itemId, userEmail) => {
+  try {
+    const url = `${API_BASE_URL}/chat/partners?item_id=${itemId}&user_email=${encodeURIComponent(userEmail)}`;
+    const response = await fetch(url);
+    
+    if (!response.ok) {
+      throw new Error('Failed to fetch chat partners');
+    }
+    
+    const data = await response.json();
+    return data.partners || [];
+  } catch (error) {
+    console.error('Error fetching chat partners:', error);
     throw error;
   }
 };

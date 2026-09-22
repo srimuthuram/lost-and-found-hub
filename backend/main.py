@@ -1195,9 +1195,9 @@ def mark_item_messages_as_read(item_id: int = Query(..., description="Item ID"),
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-# GET /api/chat: Get chat history for an item between two users
-@app.get("/api/chat")
-def get_chat_history(item_id: int = Query(..., description="Item ID"), user_email: str = Query(..., description="Current user email")):
+# GET /api/chat/partners: Get list of unique conversation partners for an item
+@app.get("/api/chat/partners")
+def get_chat_partners(item_id: int = Query(..., description="Item ID"), user_email: str = Query(..., description="Current user email")):
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
@@ -1214,18 +1214,132 @@ def get_chat_history(item_id: int = Query(..., description="Item ID"), user_emai
             raise HTTPException(status_code=404, detail="User not found")
         user_id = user_result[0]
         
-        # Get all messages for this item where current user is either sender or receiver
+        # Get unique conversation partners for this item - simplified query
         cursor.execute("""
-            SELECT m.id, m.sender_id, m.receiver_id, m.message, m.is_read, m.read_at, m.created_at, 
-                   m.proof_image_url, m.verification_answer,
-                   u_sender.name as sender_name, u_sender.email as sender_email,
-                   u_receiver.name as receiver_name, u_receiver.email as receiver_email
+            SELECT DISTINCT 
+                CASE 
+                    WHEN m.sender_id = %s THEN m.receiver_id 
+                    ELSE m.sender_id 
+                END as partner_id,
+                u.name as partner_name,
+                u.email as partner_email,
+                u.dp_url as partner_dp
             FROM messages m
-            JOIN users u_sender ON m.sender_id = u_sender.id
-            JOIN users u_receiver ON m.receiver_id = u_receiver.id
+            JOIN users u ON (
+                CASE 
+                    WHEN m.sender_id = %s THEN m.receiver_id 
+                    ELSE m.sender_id 
+                END = u.id
+            )
             WHERE m.item_id = %s AND (m.sender_id = %s OR m.receiver_id = %s)
-            ORDER BY m.created_at ASC
-        """, (item_id, user_id, user_id))
+        """, (user_id, user_id, item_id, user_id, user_id))
+        
+        partners = []
+        for row in cursor.fetchall():
+            # Get last message for this partner
+            cursor.execute("""
+                SELECT message, created_at 
+                FROM messages 
+                WHERE item_id = %s 
+                AND (
+                    (sender_id = %s AND receiver_id = %s) OR 
+                    (sender_id = %s AND receiver_id = %s)
+                )
+                ORDER BY created_at DESC LIMIT 1
+            """, (item_id, user_id, row[0], row[0], user_id))
+            last_msg = cursor.fetchone()
+            
+            # Get unread count for this partner
+            cursor.execute("""
+                SELECT COUNT(*) 
+                FROM messages 
+                WHERE item_id = %s 
+                AND receiver_id = %s 
+                AND sender_id = %s 
+                AND is_read = FALSE
+            """, (item_id, user_id, row[0]))
+            unread_count = cursor.fetchone()[0]
+            
+            partners.append({
+                "partner_id": row[0],
+                "partner_name": row[1],
+                "partner_email": row[2],
+                "partner_dp": row[3],
+                "last_message_time": last_msg[1].isoformat() if last_msg and last_msg[1] else None,
+                "last_message": last_msg[0] if last_msg else None,
+                "unread_count": unread_count
+            })
+        
+        cursor.close()
+        conn.close()
+        
+        return {"partners": partners}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# GET /api/chat: Get chat history for an item between two users
+@app.get("/api/chat")
+def get_chat_history(item_id: int = Query(..., description="Item ID"), user_email: str = Query(..., description="Current user email"), partner_email: str = Query(None, description="Filter by specific conversation partner")):
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        # Get current user ID
+        cursor.execute(
+            "SELECT id FROM users WHERE email = %s",
+            (user_email,)
+        )
+        user_result = cursor.fetchone()
+        if not user_result:
+            cursor.close()
+            conn.close()
+            raise HTTPException(status_code=404, detail="User not found")
+        user_id = user_result[0]
+        
+        # Build query with optional partner filter
+        if partner_email:
+            # Get partner user ID
+            cursor.execute(
+                "SELECT id FROM users WHERE email = %s",
+                (partner_email,)
+            )
+            partner_result = cursor.fetchone()
+            if not partner_result:
+                cursor.close()
+                conn.close()
+                raise HTTPException(status_code=404, detail="Partner user not found")
+            partner_id = partner_result[0]
+            
+            # Get messages between current user and specific partner for this item
+            cursor.execute("""
+                SELECT m.id, m.sender_id, m.receiver_id, m.message, m.is_read, m.read_at, m.created_at, 
+                       m.proof_image_url, m.verification_answer,
+                       u_sender.name as sender_name, u_sender.email as sender_email,
+                       u_receiver.name as receiver_name, u_receiver.email as receiver_email
+                FROM messages m
+                JOIN users u_sender ON m.sender_id = u_sender.id
+                JOIN users u_receiver ON m.receiver_id = u_receiver.id
+                WHERE m.item_id = %s AND (
+                    (m.sender_id = %s AND m.receiver_id = %s) OR 
+                    (m.sender_id = %s AND m.receiver_id = %s)
+                )
+                ORDER BY m.created_at ASC
+            """, (item_id, user_id, partner_id, partner_id, user_id))
+        else:
+            # Get all messages for this item where current user is either sender or receiver
+            cursor.execute("""
+                SELECT m.id, m.sender_id, m.receiver_id, m.message, m.is_read, m.read_at, m.created_at, 
+                       m.proof_image_url, m.verification_answer,
+                       u_sender.name as sender_name, u_sender.email as sender_email,
+                       u_receiver.name as receiver_name, u_receiver.email as receiver_email
+                FROM messages m
+                JOIN users u_sender ON m.sender_id = u_sender.id
+                JOIN users u_receiver ON m.receiver_id = u_receiver.id
+                WHERE m.item_id = %s AND (m.sender_id = %s OR m.receiver_id = %s)
+                ORDER BY m.created_at ASC
+            """, (item_id, user_id, user_id))
         
         messages = []
         for row in cursor.fetchall():

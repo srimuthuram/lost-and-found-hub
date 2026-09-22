@@ -66,6 +66,7 @@ function InteractiveGuide() {
         aria-label="Open guide"
       >
         <span className="guide-icon">?</span>
+        <span className="guide-text">Need Help</span>
       </button>
 
       {/* Interactive Walkthrough Modal */}
