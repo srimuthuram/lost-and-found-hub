@@ -4,7 +4,7 @@ import re
 from datetime import datetime, timedelta
 from pathlib import Path
 from dotenv import load_dotenv
-import resend
+import requests
 import bcrypt
 
 env_path = Path(__file__).resolve().parent / ".env"
@@ -179,32 +179,54 @@ def store_otp(email: str, otp_code: str):
         raise
 
 def send_otp_email(email: str, otp_code: str):
-    """Send OTP email using Resend API."""
+    """Send OTP email using Brevo API."""
     try:
-        resend_api_key = os.getenv("RESEND_API_KEY")
+        brevo_api_key = os.getenv("BREVO_API_KEY")
         
-        if not resend_api_key:
-            print("Warning: RESEND_API_KEY not configured. OTP will be logged instead.")
+        if not brevo_api_key:
+            print("Warning: BREVO_API_KEY not configured. OTP will be logged instead.")
             print(f"OTP for {email}: {otp_code}")
             return
         
-        # Initialize Resend client
-        resend.api_key = resend_api_key
+        # Brevo API endpoint
+        url = "https://api.brevo.com/v3/smtp/email"
         
-        # Send email using Resend
-        params = {
-            "from": "Lost and Found Hub <noreply@yourdomain.com>",
-            "to": [email],
+        # Headers
+        headers = {
+            "accept": "application/json",
+            "api-key": brevo_api_key,
+            "content-type": "application/json"
+        }
+        
+        # Email payload according to Brevo API format
+        payload = {
+            "sender": {
+                "name": "Lost and Found Hub",
+                "email": "srimuthuram.v@gmail.com"
+            },
+            "to": [
+                {
+                    "email": email,
+                    "name": email.split('@')[0]
+                }
+            ],
             "subject": "Verify Your Email - Lost and Found Hub",
-            "html": f"""
+            "htmlContent": f"""
             <h2>Your verification code is: {otp_code}</h2>
             <p>This code will expire in 10 minutes.</p>
             <p>If you didn't request this code, please ignore this email.</p>
             """
         }
         
-        resend.Emails.send(params)
-        print(f"OTP sent to {email}")
+        # Send email using Brevo API
+        response = requests.post(url, json=payload, headers=headers)
+        
+        if response.status_code == 201:
+            print(f"OTP sent to {email}")
+        else:
+            print(f"Error sending OTP: {response.status_code} - {response.text}")
+            print(f"OTP for {email}: {otp_code}")
+            
     except Exception as e:
         print(f"Error sending OTP email: {e}")
         # Log OTP if email fails
