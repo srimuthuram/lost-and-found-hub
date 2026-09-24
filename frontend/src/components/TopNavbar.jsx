@@ -1,8 +1,10 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
+import InteractiveGuide from './InteractiveGuide'
 import './TopNavbar.css'
 
 function TopNavbar({ user, onLogout, unreadCount, onNotificationsClick }) {
   const [showMenu, setShowMenu] = useState(false)
+  const [showGuide, setShowGuide] = useState(false)
 
   const handleLogout = () => {
     if (onLogout) {
@@ -10,13 +12,10 @@ function TopNavbar({ user, onLogout, unreadCount, onNotificationsClick }) {
     }
   }
 
-  // Hide help button when dropdown is open
-  useEffect(() => {
-    const helpButton = document.querySelector('.guide-trigger');
-    if (helpButton) {
-      helpButton.style.display = showMenu ? 'none' : 'flex';
-    }
-  }, [showMenu])
+  const handleShowGuide = () => {
+    setShowGuide(true)
+    setShowMenu(false)
+  }
 
   return (
     <nav className="top-navbar">
@@ -58,12 +57,18 @@ function TopNavbar({ user, onLogout, unreadCount, onNotificationsClick }) {
                   <span className="dropdown-icon">👤</span>
                   <span>Profile</span>
                 </div>
+                <div className="dropdown-item" onClick={handleShowGuide}>
+                  <span className="dropdown-icon">?</span>
+                  <span>Need Help</span>
+                </div>
                 <div className="dropdown-item" onClick={handleLogout}>
                   <span className="dropdown-icon">🚪</span>
                   <span>Logout</span>
                 </div>
               </div>
             )}
+
+            <InteractiveGuide isOpen={showGuide} onClose={() => setShowGuide(false)} />
           </div>
         )}
       </div>

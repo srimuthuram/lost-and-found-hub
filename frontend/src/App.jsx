@@ -419,11 +419,6 @@ function App() {
           </div>
         </div>
 
-        {/* Interactive Guide for authenticated users (desktop only) */}
-        <div className="desktop-guide">
-          <InteractiveGuide />
-        </div>
-
         {loading ? (
           <div className="loading">Loading items...</div>
         ) : items.length === 0 ? (

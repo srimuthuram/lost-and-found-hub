@@ -151,29 +151,6 @@ const ChatModal = ({ isOpen, onClose, itemId, currentUser, otherUser, item }) =>
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal modal-chat" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
-          <div className="chat-participants">
-            {/* Show ONLY the selected partner's DP, name, and email */}
-            {contactName && (
-              <div className="chat-participant">
-                {selectedPartner?.partner_dp ? (
-                  <img src={selectedPartner.partner_dp} alt="Profile" className="participant-dp" />
-                ) : (
-                  <div className="participant-dp participant-dp-placeholder">
-                    {contactName.charAt(0).toUpperCase()}
-                  </div>
-                )}
-                <div className="participant-info">
-                  <span className="participant-name">{contactName}</span>
-                  {contactEmail && (
-                    <div className="participant-email">
-                      <span className="email-label">Contact:</span>
-                      <span className="email-address">{contactEmail}</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
           <button className="btn-close" onClick={onClose}>&times;</button>
         </div>
 
@@ -215,6 +192,28 @@ const ChatModal = ({ isOpen, onClose, itemId, currentUser, otherUser, item }) =>
 
           {/* Chat Messages Area */}
           <div className="chat-messages-area">
+            {/* Partner Info Header */}
+            {contactName && (
+              <div className="chat-partner-header">
+                {selectedPartner?.partner_dp ? (
+                  <img src={selectedPartner.partner_dp} alt="Profile" className="partner-header-dp" />
+                ) : (
+                  <div className="partner-header-dp partner-header-dp-placeholder">
+                    {contactName.charAt(0).toUpperCase()}
+                  </div>
+                )}
+                <div className="partner-header-info">
+                  <span className="partner-header-name">{contactName}</span>
+                  {contactEmail && (
+                    <div className="partner-header-email">
+                      <span className="email-label">Contact:</span>
+                      <span className="email-address">{contactEmail}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
             {error && <div className="error-message">{error}</div>}
 
             {loading && messages.length === 0 ? (

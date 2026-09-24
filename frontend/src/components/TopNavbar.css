@@ -224,6 +224,10 @@
   color: #f8fafc;
 }
 
+.mobile-help-item {
+  display: flex;
+}
+
 .dropdown-item {
   display: flex;
   align-items: center;
@@ -232,6 +236,7 @@
   cursor: pointer;
   transition: all 0.3s ease;
   color: #cbd5e1;
+  line-height: 1;
 }
 
 .dropdown-item:hover {
@@ -242,6 +247,12 @@
 
 .dropdown-icon {
   font-size: 1.25rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
 }
 
 @keyframes pulse {
@@ -251,10 +262,6 @@
   50% {
     box-shadow: 0 0 15px rgba(239, 68, 68, 0.6);
   }
-}
-
-.dropdown-icon {
-  font-size: 1.25rem;
 }
 
 @media (max-width: 640px) {

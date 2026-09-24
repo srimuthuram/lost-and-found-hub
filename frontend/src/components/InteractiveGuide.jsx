@@ -1,9 +1,12 @@
 import { useState } from 'react'
 import './InteractiveGuide.css'
 
-function InteractiveGuide({ inContainer = false }) {
-  const [isOpen, setIsOpen] = useState(false)
+function InteractiveGuide({ isOpen, onClose, inContainer = false }) {
+  const [internalOpen, setInternalOpen] = useState(false)
   const [currentStep, setCurrentStep] = useState(0)
+
+  const controlledOpen = isOpen !== undefined ? isOpen : internalOpen
+  const setOpen = isOpen !== undefined ? onClose : setInternalOpen
 
   const tourSteps = [
     {
@@ -53,24 +56,26 @@ function InteractiveGuide({ inContainer = false }) {
   }
 
   const handleClose = () => {
-    setIsOpen(false)
+    setOpen()
     setCurrentStep(0)
   }
 
   return (
     <>
       {/* Floating Guide Trigger Button */}
-      <button
-        className={`guide-trigger ${inContainer ? 'in-container' : ''}`}
-        onClick={() => setIsOpen(true)}
-        aria-label="Open guide"
-      >
-        <span className="guide-icon">?</span>
-        <span className="guide-text">Need Help</span>
-      </button>
+      {!isOpen && !inContainer && (
+        <button
+          className="guide-trigger"
+          onClick={() => setInternalOpen(true)}
+          aria-label="Open guide"
+        >
+          <span className="guide-icon">?</span>
+          <span className="guide-text">Need Help</span>
+        </button>
+      )}
 
       {/* Interactive Walkthrough Modal */}
-      {isOpen && (
+      {controlledOpen && (
         <div className="guide-modal-overlay" onClick={handleClose}>
           <div className="guide-modal" onClick={(e) => e.stopPropagation()}>
             <button
