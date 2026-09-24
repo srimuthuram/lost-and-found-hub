@@ -194,13 +194,34 @@
   position: absolute;
   top: 100%;
   right: 0;
-  background: #1e2937;
+  background: #1e293b;
   border: 1px solid #334155;
   border-radius: 8px;
   box-shadow: 0 4px 6px rgba(15, 23, 42, 0.5), 0 0 20px rgba(59, 130, 246, 0.2);
   min-width: 200px;
   margin-top: 0.5rem;
   overflow: hidden;
+  z-index: 10002;
+}
+
+.dropdown-close {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  background: none;
+  border: none;
+  color: #94a3b8;
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  line-height: 1;
+}
+
+.dropdown-close:hover {
+  background: rgba(59, 130, 246, 0.2);
+  color: #f8fafc;
 }
 
 .dropdown-item {

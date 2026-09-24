@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import './InteractiveGuide.css'
 
-function InteractiveGuide() {
+function InteractiveGuide({ inContainer = false }) {
   const [isOpen, setIsOpen] = useState(false)
   const [currentStep, setCurrentStep] = useState(0)
 
@@ -61,7 +61,7 @@ function InteractiveGuide() {
     <>
       {/* Floating Guide Trigger Button */}
       <button
-        className="guide-trigger"
+        className={`guide-trigger ${inContainer ? 'in-container' : ''}`}
         onClick={() => setIsOpen(true)}
         aria-label="Open guide"
       >

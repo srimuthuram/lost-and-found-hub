@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import './TopNavbar.css'
 
 function TopNavbar({ user, onLogout, unreadCount, onNotificationsClick }) {
@@ -9,6 +9,14 @@ function TopNavbar({ user, onLogout, unreadCount, onNotificationsClick }) {
       onLogout()
     }
   }
+
+  // Hide help button when dropdown is open
+  useEffect(() => {
+    const helpButton = document.querySelector('.guide-trigger');
+    if (helpButton) {
+      helpButton.style.display = showMenu ? 'none' : 'flex';
+    }
+  }, [showMenu])
 
   return (
     <nav className="top-navbar">
@@ -45,6 +53,7 @@ function TopNavbar({ user, onLogout, unreadCount, onNotificationsClick }) {
 
             {showMenu && (
               <div className="dropdown-menu">
+                <button className="dropdown-close" onClick={() => setShowMenu(false)}>✕</button>
                 <div className="dropdown-item">
                   <span className="dropdown-icon">👤</span>
                   <span>Profile</span>

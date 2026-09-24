@@ -20,6 +20,16 @@
   gap: 0.5rem;
 }
 
+.guide-trigger.in-container {
+  position: relative;
+  top: auto;
+  right: auto;
+  width: 100%;
+  min-height: 3rem;
+  height: 3rem;
+  border-radius: 0.5rem;
+}
+
 .guide-trigger:hover {
   transform: scale(1.1);
   box-shadow: 0 6px 20px rgba(14, 165, 233, 0.5);
@@ -261,10 +271,9 @@
 }
 
 @media (max-width: 480px) {
-  .guide-trigger {
-    top: auto;
-    bottom: 15rem;
-    right: 1rem;
+  .guide-trigger:not(.in-container) {
+    top: 4.5rem;
+    right: 0.5rem;
     width: 3rem;
     min-height: 3rem;
     padding: 0.5rem;

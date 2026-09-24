@@ -369,9 +369,6 @@ function App() {
         onNotificationsClick={handleNotificationsClick}
       />
 
-      {/* Interactive Guide for authenticated users */}
-      <InteractiveGuide />
-
       {showNotifications && (
         <NotificationCenter 
           user={user} 
@@ -400,13 +397,31 @@ function App() {
       )}
 
       <main className="main-content">
-        <div className="action-buttons">
-          <button onClick={() => handleOpenForm('lost')} className="btn btn-lost">
-            + Report Lost Item
-          </button>
-          <button onClick={() => handleOpenForm('found')} className="btn btn-found">
-            + Report Found Item
-          </button>
+        <div className="action-buttons-container">
+          <div className="action-buttons">
+            <button onClick={() => handleOpenForm('lost')} className="btn btn-lost">
+              <span className="mobile-btn-text">
+                <span className="btn-line-1">+ Report</span>
+                <span className="btn-line-2">Lost Item</span>
+              </span>
+              <span className="desktop-btn-text">+ Report Lost Item</span>
+            </button>
+            <button onClick={() => handleOpenForm('found')} className="btn btn-found">
+              <span className="mobile-btn-text">
+                <span className="btn-line-1">+ Report</span>
+                <span className="btn-line-2">Found Item</span>
+              </span>
+              <span className="desktop-btn-text">+ Report Found Item</span>
+            </button>
+          </div>
+          <div className="action-buttons-guide">
+            <InteractiveGuide inContainer={true} />
+          </div>
+        </div>
+
+        {/* Interactive Guide for authenticated users (desktop only) */}
+        <div className="desktop-guide">
+          <InteractiveGuide />
         </div>
 
         {loading ? (

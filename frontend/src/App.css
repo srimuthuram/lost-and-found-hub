@@ -18,11 +18,29 @@
   padding: 1rem 1.5rem 0.5rem;
 }
 
+.action-buttons-container {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 2rem;
+  width: 100%;
+}
+
 .action-buttons {
   display: flex;
   gap: 1rem;
-  margin-bottom: 2rem;
   justify-content: center;
+  width: 100%;
+}
+
+.action-buttons-guide {
+  width: 25%;
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+
+.desktop-guide {
+  display: flex;
 }
 
 .btn-lost {
@@ -181,6 +199,26 @@
   font-size: 0.875rem;
   font-weight: 500;
   transition: all 0.2s ease;
+}
+
+.mobile-btn-text {
+  display: none;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.desktop-btn-text {
+  display: inline;
+}
+
+.btn-line-1 {
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.btn-line-2 {
+  font-size: 0.75rem;
+  font-weight: 500;
 }
 
 .btn-primary {
@@ -457,13 +495,35 @@
     padding: 1rem 0.75rem 0.5rem;
   }
 
+  .action-buttons-container {
+    gap: 0.5rem;
+  }
+
   .action-buttons {
-    flex-direction: column;
+    width: 75%;
     gap: 0.75rem;
+    margin-bottom: 0;
   }
 
   .action-buttons .btn {
-    width: 100%;
+    flex: 1;
+    height: 3rem;
+  }
+
+  .mobile-btn-text {
+    display: flex;
+  }
+
+  .desktop-btn-text {
+    display: none;
+  }
+
+  .action-buttons-guide {
+    display: flex;
+  }
+
+  .desktop-guide {
+    display: none;
   }
 
   .items-grid {
@@ -646,7 +706,6 @@
 .form-group textarea {
   resize: vertical;
   min-height: 50px;
-  rows: 2;
 }
 
 .file-input {
