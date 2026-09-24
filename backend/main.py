@@ -4,10 +4,7 @@ import re
 from datetime import datetime, timedelta
 from pathlib import Path
 from dotenv import load_dotenv
-import smtplib
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
-from email.message import EmailMessage
+import resend
 import bcrypt
 
 env_path = Path(__file__).resolve().parent / ".env"
@@ -182,42 +179,31 @@ def store_otp(email: str, otp_code: str):
         raise
 
 def send_otp_email(email: str, otp_code: str):
-    """Send OTP email using SMTP."""
+    """Send OTP email using Resend API."""
     try:
-        smtp_host = os.getenv("SMTP_HOST")
-        smtp_port = int(os.getenv("SMTP_PORT", 587))
-        smtp_email = os.getenv("SMTP_EMAIL")
-        smtp_password = os.getenv("SMTP_PASSWORD")
-        smtp_from_name = os.getenv("SMTP_FROM_NAME", "Lost and Found Hub")
+        resend_api_key = os.getenv("RESEND_API_KEY")
         
-        if not smtp_email or not smtp_password:
-            print("Warning: SMTP credentials not configured. OTP will be logged instead.")
+        if not resend_api_key:
+            print("Warning: RESEND_API_KEY not configured. OTP will be logged instead.")
             print(f"OTP for {email}: {otp_code}")
             return
         
-        # Create message
-        msg = MIMEMultipart()
-        msg['From'] = f"{smtp_from_name} <{smtp_email}>"
-        msg['To'] = email
-        msg['Subject'] = "Verify Your Email - Lost and Found Hub"
+        # Initialize Resend client
+        resend.api_key = resend_api_key
         
-        body = f"""
-        Your verification code is: {otp_code}
+        # Send email using Resend
+        params = {
+            "from": "Lost and Found Hub <noreply@yourdomain.com>",
+            "to": [email],
+            "subject": "Verify Your Email - Lost and Found Hub",
+            "html": f"""
+            <h2>Your verification code is: {otp_code}</h2>
+            <p>This code will expire in 10 minutes.</p>
+            <p>If you didn't request this code, please ignore this email.</p>
+            """
+        }
         
-        This code will expire in 10 minutes.
-        
-        If you didn't request this code, please ignore this email.
-        """
-        
-        msg.attach(MIMEText(body, 'plain'))
-        
-        # Send email
-        server = smtplib.SMTP(smtp_host, smtp_port)
-        server.starttls()
-        server.login(smtp_email, smtp_password)
-        server.send_message(msg)
-        server.quit()
-        
+        resend.Emails.send(params)
         print(f"OTP sent to {email}")
     except Exception as e:
         print(f"Error sending OTP email: {e}")
