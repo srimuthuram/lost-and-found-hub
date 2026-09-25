@@ -6,7 +6,6 @@ from pathlib import Path
 from dotenv import load_dotenv
 import requests
 import bcrypt
-from email.message import EmailMessage
 
 env_path = Path(__file__).resolve().parent / ".env"
 load_dotenv(dotenv_path=env_path)
@@ -232,6 +231,68 @@ def send_otp_email(email: str, otp_code: str):
         print(f"Error sending OTP email: {e}")
         # Log OTP if email fails
         print(f"OTP for {email}: {otp_code}")
+        raise
+
+def send_contact_email(owner_email: str, sender_name: str, sender_email: str, message: str, proof_image_url: str = None, verification_answer: str = None):
+    """Send contact email using Brevo API."""
+    try:
+        brevo_api_key = os.getenv("BREVO_API_KEY")
+        
+        if not brevo_api_key:
+            print("Warning: BREVO_API_KEY not configured. Contact email will be logged instead.")
+            print(f"Contact email to {owner_email} from {sender_name} ({sender_email})")
+            return
+        
+        # Brevo API endpoint
+        url = "https://api.brevo.com/v3/smtp/email"
+        
+        # Headers
+        headers = {
+            "accept": "application/json",
+            "api-key": brevo_api_key,
+            "content-type": "application/json"
+        }
+        
+        # Build email content
+        email_content = f"""
+        <h2>New Message Regarding Your Item</h2>
+        <p><strong>From:</strong> {sender_name} ({sender_email})</p>
+        <p><strong>Message:</strong></p>
+        <p>{message}</p>
+        """
+        
+        if proof_image_url:
+            email_content += "<p><em>Proof of ownership image provided.</em></p>"
+        
+        if verification_answer:
+            email_content += "<p><em>Security question answered.</em></p>"
+        
+        # Email payload according to Brevo API format
+        payload = {
+            "sender": {
+                "name": "Lost and Found Hub",
+                "email": "srimuthuram.v@gmail.com"
+            },
+            "to": [
+                {
+                    "email": owner_email,
+                    "name": owner_email.split('@')[0]
+                }
+            ],
+            "subject": "Lost & Found Hub: Message regarding your item",
+            "htmlContent": email_content
+        }
+        
+        # Send email using Brevo API
+        response = requests.post(url, json=payload, headers=headers)
+        
+        if response.status_code == 201:
+            print(f"Contact email sent to {owner_email}")
+        else:
+            print(f"Error sending contact email: {response.status_code} - {response.text}")
+            
+    except Exception as e:
+        print(f"Error sending contact email: {e}")
         raise
 
 # Lifespan context manager for startup tasks
@@ -1013,22 +1074,15 @@ def contact_owner(data: ContactOwnerRequest):
         )
         conn.commit()
         
-        # Send email
-        msg = EmailMessage()
-        email_content = f"From: {data.sender_name} ({data.sender_email})\n\n{data.message}"
-        if data.proof_image_url:
-            email_content += "\n\nProof of ownership image provided."
-        if data.verification_answer:
-            email_content += "\n\nSecurity question answered."
-        msg.set_content(email_content)
-        msg["Subject"] = "Lost & Found Hub: Message regarding your item"
-        msg["From"] = os.getenv("SMTP_EMAIL")
-        msg["To"] = data.owner_email
-
-        with smtplib.SMTP(os.getenv("SMTP_HOST", "smtp.gmail.com"), int(os.getenv("SMTP_PORT", 587))) as server:
-            server.starttls()
-            server.login(os.getenv("SMTP_EMAIL"), os.getenv("SMTP_PASSWORD"))
-            server.send_message(msg)
+        # Send email using Brevo API
+        send_contact_email(
+            owner_email=data.owner_email,
+            sender_name=data.sender_name,
+            sender_email=data.sender_email,
+            message=data.message,
+            proof_image_url=data.proof_image_url,
+            verification_answer=data.verification_answer
+        )
         
         cursor.close()
         conn.close()
